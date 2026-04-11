@@ -1,5 +1,7 @@
 # SVD Physics（公开复现树）
 
+**GitHub 仓库**：<https://github.com/xianzhengma/idpp>
+
 本目录为与 **`Inferring_dynamic_physics/SVD` 原工程隔离** 的开源复现仓库：训练 / 评测 DynamiCrafter（论文表 **E**）与 V-JEPA-2（论文表 **B**），并以 **论文 Table 1** 为最终验收基准。
 
 ## 当前阶段：GitHub 代码先行版（无权重、无数据集）
