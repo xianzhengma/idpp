@@ -2,6 +2,11 @@
 
 本目录为与 **`Inferring_dynamic_physics/SVD` 原工程隔离** 的开源复现仓库：训练 / 评测 DynamiCrafter（论文表 **E**）与 V-JEPA-2（论文表 **B**），并以 **论文 Table 1** 为最终验收基准。
 
+## 当前阶段：GitHub 代码先行版（无权重、无数据集）
+
+**本仓库推送内容仅包含**：代码、`configs/` 模板与生成脚本、文档、`environment.yml` / `requirements.txt`。  
+**不包含** checkpoint、评测视频或 Hugging Face 上的模型/数据发布；合作者克隆后即可浏览结构与接口。完整可复现评测需在本地配置 **`SVD_ROOT`** 下的权重与数据；**Hugging Face 上的模型与数据集将后续单独上传**（见 [docs/HUGGINGFACE.md](docs/HUGGINGFACE.md)）。
+
 - **主表对照**：[docs/paper_table1_reference.md](docs/paper_table1_reference.md)
 - **HF 占位说明**：[docs/HUGGINGFACE.md](docs/HUGGINGFACE.md)
 - **环境**：`environment.yml`（由 `dynamicrafter_vjepa` conda 环境导出并去除 `prefix`）；或 `pip install -r requirements.txt`
@@ -21,9 +26,9 @@ python scripts/resolve_eval_configs.py --svd-root "$SVD_ROOT"
 # 写出 configs/reproduce/generated/*.yaml
 ```
 
-## 下载权重与数据（Hugging Face）
+## 下载权重与数据（Hugging Face，后续步骤）
 
-将 Hub 仓库 ID 写入环境变量后执行（占位 ID 默认跳过下载，仅打印提示）：
+待 Hub 仓库就绪后，将仓库 ID 写入环境变量再执行（当前占位 ID 会跳过下载，仅打印提示）：
 
 ```bash
 export HF_SVD_CHECKPOINTS_REPO=your-org/svd-physics-checkpoints

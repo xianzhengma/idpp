@@ -1,5 +1,7 @@
 # Hugging Face 发布说明
 
+**状态**：与 GitHub **代码先行版** 分开推进；**模型权重与评测数据集尚未上传 Hub**，上传后再将本文档中的占位 ID 换成真实仓库，并在 README 中写明 revision。
+
 ## 仓库占位
 
 在 **`scripts/download_hf_assets.py`** 中默认使用占位 ID：
