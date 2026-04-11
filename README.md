@@ -29,6 +29,8 @@ python scripts/resolve_eval_configs.py --svd-root "$SVD_ROOT"
 
 ## Download weights and data (Hugging Face, later)
 
+**Which ckpts and which data dirs match the paper:** see [docs/HF_ASSETS_PAPER_ALIGNMENT.md](docs/HF_ASSETS_PAPER_ALIGNMENT.md). **E** is anchored to **`SVD/paper_scores_paths_and_checkpoints.md` §3** (new-data `e729_nd_*`) and **`calculate_e729_newdata_dc_scores.py`**; **B** to **`SVD/paper_scores_B_sources_and_checkpoints.md`** and mirror configs under the internal `SVD/` tree.
+
 After Hub repositories exist, set their IDs and run (placeholder IDs skip download and only print hints):
 
 ```bash

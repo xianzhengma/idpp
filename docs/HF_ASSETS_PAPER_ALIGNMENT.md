@@ -1,162 +1,94 @@
 # Hugging Face assets — alignment with paper Table 1
 
-This note ties **checkpoints** and **datasets** to the paper’s three properties (friction, viscosity, elasticity), **absolute vs relative** tasks, and **train + Test-1/2/3** splits. Paths below are relative to the project root  
-`/work/guanqi/proj5/Inferring_dynamic_physics` (i.e. `checkpoints/…`, `dataset/…`).
+This note ties **checkpoints**, **datasets**, and **eval configs** to the paper. Physical roots on the server are under  
+`/work/guanqi/proj5/Inferring_dynamic_physics` (`checkpoints/`, `dataset/`).  
+The symlink `backup_dynamicrafer_ckpt` → `checkpoints` matches **`CKPT_ROOT`** in the score docs.
+
+---
+
+## 0. Source of truth (open-source plan)
+
+**All weight–data–config correspondence for publication and Hub packaging follows these internal docs—not ad-hoc paths.**
+
+| Track | Authoritative index | Scoring / repro code | Notes |
+|--------|---------------------|----------------------|--------|
+| **E — DynamiCrafter** | **`SVD/paper_scores_paths_and_checkpoints.md` §3** (`e729_nd_*`, new-data protocol) | **`SVD_public/calculate_e729_newdata_dc_scores.py`** (same logic as `SVD/calculate_e729_newdata_dc_scores.py` for `e729_nd_*`) | **§2** of that file (`7.29_result_*` scatter protocol) is **not** the main open-source repro path; do **not** treat it as the primary Hub alignment for E. Per-row **`pretrained_checkpoint`**, **result subdirectory**, and **yaml template** are exactly the §3 table. Default config area: `SVD/configs/training_1024_v1.0/e_729_eval_newdata_202603/`. **Exception:** v120 friction absolute **test3** uses the sweep ckpt/path listed in §3 (not the default `epoch=18-step=4500` row for that cell). |
+| **B — V-JEPA-2 (mirror)** | **`SVD/paper_scores_B_sources_and_checkpoints.md`** | Mirror yaml under **`SVD/configs/training_1024_v1.0/vjepa_no_red_circle/mirror_eval/`** (generated from `generate_mirror_configs.py` where applicable) | Public **gate**: elasticity **v124_vjepa** / **v125_vjepa**, Test-3, abs + rel (`SVD_public/scripts/verify_paper_elasticity_test3.py`). Full B table: follow the same B doc’s checkpoint + result columns. |
+
+**Numeric authority:** `SVD/paper_scores_E_7.29.md` (E / newdata) and the master / B docs referenced there. If recompute disagrees with the paper table, **fix data, preprocessing, metric code, or ckpt choice**—**not** the published table (`docs/paper_table1_reference.md` remains the external reference).
+
+**Checkpoint filenames (Version E / B paths under `CKPT_ROOT`):** also summarized in **`model_global_map.md`** (sections **E** and **B**); keep Hub layout consistent with §3 / B table, not only the map in isolation.
 
 ---
 
 ## 1. Dataset layout (24 logical bundles)
 
-Paper convention: **3 properties × 2 task types × 4 splits = 24**.
+Paper convention: **3 properties × 2 task types × 4 splits = 24** (equivalently **4 × 2 × 3**).
 
 | Factors | Values |
 |--------|--------|
 | Properties | friction, viscosity, elasticity |
-| Task type | **absolute** (value prediction), **relative** (pairwise comparison) |
-| Splits | **train**, **test1** (synthetic, in-distribution), **test2** (synthetic, OOD), **test3** (real / harder) |
+| Task type | **absolute**, **relative** |
+| Splits | **train**, **test1**, **test2**, **test3** |
 
-So: **4 × 2 × 3 = 24** (same as **3 × 2 × 4**).
+**Binding E newdata rows to disk:** for each **`e729_nd_*`** row, the **yaml** named in **`SVD/paper_scores_paths_and_checkpoints.md` §3** defines **`data_dir`** and **`video_list_json`** (and friends). Those paths—plus the **`used_video_list_3.22` / `data_global_map.md` rules** cited in `paper_scores_E_7.29.md`—are the authoritative dataset wiring for **E**. Do not swap in §2 scatter directories for that purpose.
 
-On disk, names are **not** one flat folder per bundle; they follow historical experiment IDs. Use this **logical → physical** map when building the Hub dataset (recommended Hub layout: `friction/absolute/{train,test1,test2,test3}/` etc., filled from the paths below).
+**Rough physical map under `dataset/`** (zips may need unpacking on Hub; names are historical):
 
-### 1.1 Friction — absolute
+- **Friction absolute:** `friction_absolute/` (`4.29_*` test1/2, `7.18_*` test3, etc.)
+- **Friction relative:** `friction_relative/` (`5.24_*` train/test1/2, `7.18_*` test3)
+- **Viscosity absolute / relative:** `viscosity_absolute/`, `viscosity_relative/`
+- **Elasticity absolute / relative:** `elasticity_absolute/`, `elasticity_relative/`
 
-| Split | Primary location under `dataset/` |
-|-------|-------------------------------------|
-| train | *(often bundled with synthetic pipeline; see friction_relative train or project `data_global_map` for the exact train root used in training)* |
-| test1 | `friction_absolute/4.29_friction_synthetic_test1/` |
-| test2 | `friction_absolute/4.29_friction_synthetic_test2/` |
-| test3 | `friction_absolute/7.18_friction_test3_rgb_seg_videos_152frames_abs_test/` |
-
-Related zips in `dataset/friction_absolute/` and top-level `dataset/*.zip` are backups of the same material.
-
-### 1.2 Friction — relative
-
-| Split | Location |
-|-------|----------|
-| train | `friction_relative/5.24_friction_synthetic_train/` |
-| test1 | `friction_relative/5.24_friction_synthetic_test1/` |
-| test2 | `friction_relative/5.24_friction_synthetic_test2/` |
-| test3 | `friction_relative/7.18_friction_test3_rgb_seg_videos_152frames_relative_test/` |
-
-### 1.3 Viscosity — absolute
-
-| Split | Location |
-|-------|----------|
-| train | `viscosity_absolute/5.2_viscosity_synthetic_train/` (+ matching `.zip`) |
-| test1 | `viscosity_absolute/5.2_viscosity_synthetic_test1.zip` (unpack for Hub) |
-| test2 | `viscosity_absolute/5.2_viscosity_synthetic_test2.zip` |
-| test3 | `viscosity_absolute/7.15_new_viscosity_video_clips_16frames_merged.zip` (and related `6.2_viscosity_test3_absolute.zip` at `dataset/` root if needed) |
-
-### 1.4 Viscosity — relative
-
-| Split | Location |
-|-------|----------|
-| train | `viscosity_relative/5.24_viscosity_synthetic_train/` |
-| test1 | `viscosity_relative/5.24_viscosity_synthetic_test1/` |
-| test2 | `viscosity_relative/5.24_viscosity_synthetic_test2/` |
-| test3 | `viscosity_relative/7.15_new_viscosity_video_clips_152frames_relative_merged_revised2.zip` |
-
-### 1.5 Elasticity — absolute
-
-| Split | Location |
-|-------|----------|
-| train | `elasticity_absolute/4.11_mpm_bounce_ball_videos_train2_sorted.zip` (unpack) |
-| test1 | `elasticity_absolute/4.11_mpm_bounce_ball_videos_test1_sorted.zip` |
-| test2 | `elasticity_absolute/4.11_mpm_bounce_ball_videos_test2_sorted.zip` |
-| test3 | `elasticity_absolute/7.15_new_elasticity_video_clips_16frames.zip` |
-
-### 1.6 Elasticity — relative
-
-| Split | Location |
-|-------|----------|
-| train | `elasticity_relative/5.24_elasticity_synthetic_train/` (+ `.zip`) |
-| test1 | `elasticity_relative/5.24_elasticity_synthetic_test1.zip` |
-| test2 | `elasticity_relative/5.24_elasticity_synthetic_test2.zip` |
-| test3 | `elasticity_relative/7.14_elasticity_test3.zip` |
-
-**Note:** List JSON files used by `WebVid` / configs (e.g. under `SVD_ROOT/data/lists/`) should be uploaded next to videos or documented in the dataset card; the open-source gate uses at least `elasticity_absolute_test3` + `elasticity_relative_test3` + list JSONs (see `configs/paths.example.yaml`).
+The **minimal public self-check** still uses **`elasticity_absolute_test3`**, **`elasticity_relative_test3`**, and **`data/lists/*.json`** as in `SVD_public/configs/paths.example.yaml` (resolved by `resolve_eval_configs.py`).
 
 ---
 
-## 2. Checkpoints — DynamiCrafter (**E**, paper “Video Generative Model”)
+## 2. Checkpoints — DynamiCrafter (**E**)
 
-Row identity follows `SVD/paper_scores_E_7.29.md`: **v120–v125** cover **three properties × abs/rel** (six version IDs).
+### 2.1 Primary (open repro + Hub): **§3 `e729_nd_*`**
 
-### 2.1 Six main **7.29** runs (Table 1 core, without `test3*`)
+Upload weights **exactly** as in **`SVD/paper_scores_paths_and_checkpoints.md` §3** column **`pretrained_checkpoint`** (relative to **`CKPT_ROOT`** = `checkpoints/`), including:
 
-Upload the whole run folder or pin one `.ckpt` per row per your `model_global_map.md` / eval yaml.
+- **v120–v125** main **`_7.29`** files for most rows;
+- **v120_ft_7.29** / **v121_ft_7.29** for friction **test3\*** rows;
+- **v120 friction absolute test3:** the **staging / sweep** ckpt path given in §3 (not interchangeable with default v120 main ckpt for that metric).
 
-| Version | Property | Task | Folder under `checkpoints/` |
-|--------|----------|------|-----------------------------|
-| v120 | friction | absolute | `training_1024_v120_7.29/checkpoints/` |
-| v121 | friction | relative | `training_1024_v121_7.29/checkpoints/` |
-| v122 | viscosity | absolute | `training_1024_v122_7.29/checkpoints/` |
-| v123 | viscosity | relative | `training_1024_v123_7.29/checkpoints/` |
-| v124 | elasticity | absolute | `training_1024_v124_7.29/checkpoints/` |
-| v125 | elasticity | relative | `training_1024_v125_7.29/checkpoints/` |
+Result JSON layout for scoring with **`calculate_e729_newdata_dc_scores.py`** is **`e729_newdata_20260327/<result subdirectory>`** as in §3, plus the **v120 test3** sweep folder documented there.
 
-That is **6** checkpoint **directories** (paper-aligned “main” E set).
+### 2.2 Secondary (not main open repro): **§2 `7.29_result_*`**
 
-### 2.2 Friction **test3\*** / finetune (Table 1 rows with domain adaptation / finetuned test3)
-
-| Role | Folder under `checkpoints/` |
-|------|-----------------------------|
-| v120 friction abs test3\* | `training_1024_v120_ft_7.29/checkpoints/` (e.g. `epoch=3299-step=3300.ckpt` per your sweep) |
-| v121 friction rel test3\* | `training_1024_v121_ft_7.29/checkpoints/` |
-
-That adds **2** more directories → **8** E-side bundles if you ship **both** main 6 and **both** friction finetunes.
-
-**Why “6+1=7” might appear:** some spreadsheets count **6** property-task heads plus **one** shared base encoder; on disk you still have **separate** training runs. Another interpretation is **6** main + **1** finetune only → **7**; the paper table, however, lists **two** friction `test3*` rows (abs and rel), which matches **+2** finetune dirs above.
-
-**Exact filename per row:** always take the epoch/step from the same yaml / `model_global_map.md` used when the paper numbers were frozen.
+**§2** lists **`7.29_result_*`** scatter runs and **`calculate_e_729_dc_scores.py`**. Per project policy, this is **out of scope for the primary open-source reproduction path**; optional for archival upload only, clearly labeled **non-primary**.
 
 ---
 
 ## 3. Checkpoints — V-JEPA-2 mirror (**B**)
 
-From `SVD/paper_scores_B_sources_and_checkpoints.md`.
+Follow **`SVD/paper_scores_B_sources_and_checkpoints.md`** §2 (full table): **checkpoint path**, **result root** (STABLE vs VLIST), and **mirror yaml** name.
 
-### 3.1 Six **norm** runs (one ckpt path covers test1–3 in eval configs)
+- **Six `_vjepa_norm` runs:** v110, v119, v120, v121, v124, v125 (property/task as in that table).
+- **Friction test3\*:**
+  - v120: **`training_1024_v120_vjepa_ft`** (see B doc for epoch/file);
+  - v121 test3\*: **§1.1** may point to a **scratch** path for the paper number—sync that file into `checkpoints/` for Hub or document the exact revision.
 
-| Version | Property | Task | Folder under `checkpoints/` | Example file (from index) |
-|--------|----------|------|-----------------------------|---------------------------|
-| v110 | viscosity | relative | `training_1024_v110_vjepa_norm/checkpoints/` | `epoch=120-step=15125.ckpt` |
-| v119 | viscosity | absolute | `training_1024_v119_vjepa_norm/checkpoints/` | `epoch=21-step=13000.ckpt` |
-| v120 | friction | absolute | `training_1024_v120_vjepa_norm/checkpoints/` | `epoch=116-step=14000.ckpt` |
-| v121 | friction | relative | `training_1024_v121_vjepa_norm/checkpoints/` | `epoch=120-step=15125.ckpt` |
-| v124 | elasticity | absolute | `training_1024_v124_vjepa_norm/checkpoints/` | `epoch=21-step=8375.ckpt` |
-| v125 | elasticity | relative | `training_1024_v125_vjepa_norm/checkpoints/` | `epoch=126-step=15875.ckpt` |
-
-→ **6** directories for the main B line.
-
-### 3.2 Two **finetune** runs (friction **test3\*** rows in the B table)
-
-| Role | Folder under `checkpoints/` | Notes |
-|------|-----------------------------|--------|
-| v120 friction abs test3\* | `training_1024_v120_vjepa_ft/checkpoints/` | e.g. `epoch=5499-step=5500.ckpt` |
-| v121 friction rel test3\* | **Primary ckpt in index may live outside this backup** (`paper_scores_B_sources_and_checkpoints.md` §1.1, scratch path). Locally you may ship `training_1024_v121_vjepa_ft/checkpoints/` as a substitute until the exact `norm15125_ttest` file is copied into `checkpoints/`. |
-
-→ **+2** finetune dirs → **8** B-side bundles for full parity with the B table (including `test3*`).
-
-**“6 + 2 = 8”** matches: **6** `_vjepa_norm` + **2** friction finetunes.
+**Configs:** `SVD/configs/training_1024_v1.0/vjepa_no_red_circle/mirror_eval/*.yaml` — **`pretrained_checkpoint`** must match the B sources table when regenerating.
 
 ---
 
-## 4. Summary counts (what to upload for full paper parity)
+## 4. Summary counts (full Table 1 style)
 
-| Asset class | Count | What it is |
-|-------------|------:|------------|
-| **E (DynamiCrafter)** | **6** | `v120`–`v125` `_7.29` runs |
-| **E finetune (optional but for `test3\*`)** | **+2** | `v120_ft_7.29`, `v121_ft_7.29` |
-| **B (V-JEPA norm)** | **6** | `v110`, `v119`, `v120`, `v121`, `v124`, `v125` `_vjepa_norm` |
-| **B finetune (test3\*)** | **+2** | `v120_vjepa_ft`, plus v121 finetune (verify path vs §1.1) |
-| **Dataset logical cells** | **24** | 3 properties × 2 tasks × 4 splits (see §1) |
+| Asset class | Count | Authority |
+|-------------|------:|-----------|
+| **E — primary repro** | **20** logical **`e729_nd_*` rows** (§3) | Same **6** base `_7.29` dirs + **2** `*_ft_7.29` + **one alternate** v120 test3 ckpt as in §3 |
+| **E — §2 scatter (optional)** | separate | **Not** primary Hub alignment |
+| **B** | **6** norm + **2** ft (friction test3\*) | `paper_scores_B_sources_and_checkpoints.md` |
+| **Dataset (logical)** | **24** cells | 3 × 2 × 4; **per-row** paths from §3 yamls + `data_global_map` / list JSON rules |
 
-The public repo’s **minimal** self-check still only **requires** E v124/v125 and B v124/v125 for **elasticity Test-3** (`scripts/verify_paper_elasticity_test3.py`); full Hub upload should follow this document for **whole Table 1**.
+**Public repo gate:** **E** v124/v125 + **B** v124/v125, **elasticity Test-3** only — `scripts/verify_paper_elasticity_test3.py`.
 
 ---
 
 ## 5. Changelog
 
-- **2026-04-11**: Initial manifest from `paper_scores_E_7.29.md`, `paper_scores_B_sources_and_checkpoints.md`, and local `checkpoints/` + `dataset/` layout.
+- **2026-04-11 (b)**: **Source of truth** locked to open-source plan: **E = §3 e729_nd + `calculate_e729_newdata_dc_scores.py`**; **§2 scatter excluded** from primary repro; **B = `paper_scores_B_sources_and_checkpoints.md` + mirror_eval**.
+- **2026-04-11 (a)**: Initial manifest; local `checkpoints/` + `dataset/` layout.
