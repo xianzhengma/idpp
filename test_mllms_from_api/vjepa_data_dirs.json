@@ -1,0 +1,57 @@
+{
+  "_comment": "将各路径替换为解压后的评测数据目录，或设置 SVD_ROOT 后使用与主仓库一致的子目录名。",
+  "v119_vjepa": {
+    "property": "viscosity",
+    "type": "absolute",
+    "data_dirs": {
+      "test1": "REPLACE_ME/viscosity_abs/test1",
+      "test2": "REPLACE_ME/viscosity_abs/test2",
+      "test3": "REPLACE_ME/viscosity_abs/test3"
+    }
+  },
+  "v110_vjepa": {
+    "property": "viscosity",
+    "type": "relative",
+    "data_dirs": {
+      "test1": "REPLACE_ME/viscosity_rel/test1",
+      "test2": "REPLACE_ME/viscosity_rel/test2",
+      "test3": "REPLACE_ME/viscosity_rel/test3"
+    }
+  },
+  "v120_vjepa": {
+    "property": "friction",
+    "type": "absolute",
+    "data_dirs": {
+      "test1": "REPLACE_ME/friction_abs/test1",
+      "test2": "REPLACE_ME/friction_abs/test2",
+      "test3": "REPLACE_ME/friction_abs/test3"
+    }
+  },
+  "v121_vjepa": {
+    "property": "friction",
+    "type": "relative",
+    "data_dirs": {
+      "test1": "REPLACE_ME/friction_rel/test1",
+      "test2": "REPLACE_ME/friction_rel/test2",
+      "test3": "REPLACE_ME/friction_rel/test3"
+    }
+  },
+  "v124_vjepa": {
+    "property": "elasticity",
+    "type": "absolute",
+    "data_dirs": {
+      "test1": "REPLACE_ME/elasticity_abs/test1",
+      "test2": "REPLACE_ME/elasticity_abs/test2",
+      "test3": "REPLACE_ME/elasticity_abs/test3"
+    }
+  },
+  "v125_vjepa": {
+    "property": "elasticity",
+    "type": "relative",
+    "data_dirs": {
+      "test1": "REPLACE_ME/elasticity_rel/test1",
+      "test2": "REPLACE_ME/elasticity_rel/test2",
+      "test3": "REPLACE_ME/elasticity_rel/test3"
+    }
+  }
+}

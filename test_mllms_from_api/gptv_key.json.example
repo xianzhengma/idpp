@@ -1,0 +1,5 @@
+{
+  "key": "YOUR_KEY",
+  "ip_address": "https://api.chatanywhere.tech/v1/chat/completions",
+  "version": "gpt-4o"
+}

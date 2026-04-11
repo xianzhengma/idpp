@@ -1,0 +1,20 @@
+# 复制为 `paths.local.yaml` 或仅设置环境变量 `SVD_ROOT`。
+# 推荐布局（与 scripts/resolve_eval_configs.py 一致）：
+#
+#   $SVD_ROOT/
+#     checkpoints/
+#       training_1024_v124_7.29/checkpoints/epoch=4-step=2625.ckpt
+#       training_1024_v125_7.29/checkpoints/epoch=3-step=500.ckpt
+#       training_1024_v124_vjepa_norm/checkpoints/epoch=21-step=8375.ckpt
+#       training_1024_v125_vjepa_norm/checkpoints/epoch=126-step=15875.ckpt
+#     data/
+#       elasticity_absolute_test3/     # 视频根目录（与 webvid data_dir 一致）
+#       elasticity_relative_test3/
+#       lists/
+#         elasticity_absolute_test3.json
+#         elasticity_relative_test3.json
+#     results/
+#       e729_newdata_20260327/e729_nd_v124_test3_el_abs/   # E 评测 JSON 输出
+#       mirror_eval/v124_vjepa_test3/                     # B 评测 JSON 输出
+#
+svd_root_env: SVD_ROOT
