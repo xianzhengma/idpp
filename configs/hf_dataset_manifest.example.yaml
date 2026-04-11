@@ -1,0 +1,70 @@
+# Copy to hf_dataset_manifest.yaml (local only). Edit `src` to your absolute paths.
+# `dest` is relative to the staging root (Hub repo layout).
+#
+# Rules:
+# - Prefer genesis_data for test* if that is the collaborator “full” copy.
+# - Prefer project dataset/ for train* (and mirrors when genesis is unavailable on this node).
+# - Skip or comment any entry whose src does not exist on the upload machine.
+
+version: 1
+
+entries:
+  # --- Friction relative ---
+  - dest: friction/relative/train
+    src: /work/guanqi/proj5/Inferring_dynamic_physics/dataset/friction_relative/5.24_friction_synthetic_train
+  - dest: friction/relative/test1
+    src: /work/guanqi/proj5/Inferring_dynamic_physics/dataset/friction_relative/5.24_friction_synthetic_test1
+  - dest: friction/relative/test2
+    src: /scratch/shared/beegfs/guanqi/genesis_data/5.24_friction_synthetic_test2
+  - dest: friction/relative/test3
+    src: /scratch/shared/beegfs/guanqi/genesis_data/7.18_friction_test3_rgb_seg_videos_152frames_relative_test
+
+  # --- Friction absolute (train from zip; stage_hf_dataset.py extracts .zip into dest) ---
+  - dest: friction/absolute/train
+    src: /work/guanqi/proj5/Inferring_dynamic_physics/dataset/friction_absolute/4.29_friction_synthetic_train.zip
+  - dest: friction/absolute/test1
+    src: /scratch/shared/beegfs/guanqi/genesis_data/4.29_friction_synthetic_test1
+  - dest: friction/absolute/test2
+    src: /scratch/shared/beegfs/guanqi/genesis_data/4.29_friction_synthetic_test2
+  - dest: friction/absolute/test3
+    src: /scratch/shared/beegfs/guanqi/genesis_data/7.18_friction_test3_rgb_seg_videos_152frames_abs_test
+
+  # --- Viscosity relative ---
+  - dest: viscosity/relative/train
+    src: /work/guanqi/proj5/Inferring_dynamic_physics/dataset/viscosity_relative/5.24_viscosity_synthetic_train
+  - dest: viscosity/relative/test1
+    src: /scratch/shared/beegfs/guanqi/genesis_data/5.24_viscosity_synthetic_test1
+  - dest: viscosity/relative/test2
+    src: /scratch/shared/beegfs/guanqi/genesis_data/5.24_viscosity_synthetic_test2
+  - dest: viscosity/relative/test3
+    src: /scratch/shared/beegfs/guanqi/genesis_data/7.15_new_viscosity_video_clips_152frames_relative_merged_revised2
+
+  # --- Viscosity absolute ---
+  - dest: viscosity/absolute/train
+    src: /work/guanqi/proj5/Inferring_dynamic_physics/dataset/viscosity_absolute/5.2_viscosity_synthetic_train
+  - dest: viscosity/absolute/test1
+    src: /scratch/shared/beegfs/guanqi/genesis_data/5.2_viscosity_synthetic_test1
+  - dest: viscosity/absolute/test2
+    src: /scratch/shared/beegfs/guanqi/genesis_data/5.2_viscosity_synthetic_test2
+  - dest: viscosity/absolute/test3
+    src: /scratch/shared/beegfs/guanqi/genesis_data/7.15_new_viscosity_video_clips_152frames_merged
+
+  # --- Elasticity relative ---
+  - dest: elasticity/relative/train
+    src: /work/guanqi/proj5/Inferring_dynamic_physics/dataset/elasticity_relative/5.24_elasticity_synthetic_train
+  - dest: elasticity/relative/test1
+    src: /scratch/shared/beegfs/guanqi/genesis_data/5.24_elasticity_synthetic_test1
+  - dest: elasticity/relative/test2
+    src: /scratch/shared/beegfs/guanqi/genesis_data/5.24_elasticity_synthetic_test2
+  - dest: elasticity/relative/test3
+    src: /scratch/shared/beegfs/guanqi/genesis_data/2.16_elasticity_test3
+
+  # --- Elasticity absolute train (zip on disk; extracted at stage time) ---
+  - dest: elasticity/absolute/train
+    src: /work/guanqi/proj5/Inferring_dynamic_physics/dataset/elasticity_absolute/4.11_mpm_bounce_ball_videos_train2_sorted.zip
+  - dest: elasticity/absolute/test1
+    src: /scratch/shared/beegfs/guanqi/genesis_data/4.11_mpm_bounce_ball_videos_test1_sorted
+  - dest: elasticity/absolute/test2
+    src: /scratch/shared/beegfs/guanqi/genesis_data/4.11_mpm_bounce_ball_videos_test2_sorted
+  - dest: elasticity/absolute/test3
+    src: /scratch/shared/beegfs/guanqi/genesis_data/7.15_new_elasticity_video_clips_merged

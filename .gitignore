@@ -19,3 +19,5 @@ test_mllms_from_api/gptv_key.json
 .venv/
 *.egg-info/
 .DS_Store
+hf_dataset_manifest.yaml
+hf_dataset_staging/

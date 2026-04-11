@@ -9,7 +9,7 @@ This tree is a standalone open-source reproduction codebase (separate from the i
 This push includes **only** source code, `configs/` templates and generation scripts, documentation, `environment.yml`, and `requirements.txt`. It does **not** include checkpoints, evaluation videos, or published Hugging Face model/dataset artifacts. Collaborators can clone and inspect the structure and APIs. Full reproduction requires local assets under **`SVD_ROOT`**. **Model and dataset uploads to Hugging Face are planned as a follow-up** (see [docs/HUGGINGFACE.md](docs/HUGGINGFACE.md)).
 
 - **Table 1 reference:** [docs/paper_table1_reference.md](docs/paper_table1_reference.md)
-- **Hugging Face notes:** [docs/HUGGINGFACE.md](docs/HUGGINGFACE.md)
+- **Hugging Face notes:** [docs/HUGGINGFACE.md](docs/HUGGINGFACE.md) — dataset staging / upload: [docs/HF_DATASET_UPLOAD.md](docs/HF_DATASET_UPLOAD.md)
 - **Environment:** `environment.yml` (exported from a `dynamicrafter_vjepa`-style conda env, `prefix` removed) or `pip install -r requirements.txt`
 
 ## Layout: `SVD_ROOT`
