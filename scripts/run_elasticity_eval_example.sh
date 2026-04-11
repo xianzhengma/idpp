@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 作用: 在已设置 SVD_ROOT 且已生成 yaml 的前提下，依次提交四条 Elasticity Test-3 验证（需 GPU）。
+# Run four Elasticity Test-3 validation jobs in sequence (GPU required) after SVD_ROOT is set and YAMLs are generated.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 export SVD_ROOT="${SVD_ROOT:-$ROOT/asset_root}"

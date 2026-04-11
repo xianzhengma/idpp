@@ -1,118 +1,73 @@
-#!/usr/bin/env python3
-"""
-单个视频测试脚本
-用于调试GPT回复内容和提取逻辑
-"""
-
 import os
-import sys
+importsys
 import json
 from gpt_physics_analyzer import GPTPhysicsAnalyzer
 
 def test_single_video():
-    """测试单个视频"""
-    print("=" * 80)
-    print("单个视频测试 - 用于调试GPT回复和提取逻辑")
-    print("=" * 80)
-    
-    # 初始化分析器
+    print('=' * 80)
+    print('Single video test - for debugging GPT reply and extraction logic')
+    print('=' * 80)
     try:
         analyzer = GPTPhysicsAnalyzer()
-        print("✓ 分析器初始化成功")
+        print('✓ Analyzer initialization successful')
     except Exception as e:
-        print(f"✗ 分析器初始化失败: {e}")
+        print(f'✗ Parser initialization failed:{e}')
         return
-    
-    # 选择一个测试配置
     config = analyzer.config
-    print(f"\n可用的测试配置:")
+    print(f'\nAvailable test configurations:')
     for i, (version, version_config) in enumerate(config.items()):
-        print(f"{i+1}. {version}: {version_config['property']} ({version_config['type']})")
-    
-    # 选择第一个配置进行测试
+        print(f"{i + 1}. {version}: {version_config['property']} ({version_config['type']})")
     version_name = list(config.keys())[0]
     version_config = config[version_name]
-    
-    print(f"\n使用配置: {version_name}")
-    print(f"属性: {version_config['property']}")
-    print(f"类型: {version_config['type']}")
-    
-    # 选择第一个测试集
+    print(f'\nUse configuration: {version_name}')
+    print(f"property:{version_config['property']}")
+    print(f"type:{version_config['type']}")
     test_id = list(version_config['data_dirs'].keys())[0]
     data_dir = version_config['data_dirs'][test_id]
-    
-    print(f"测试集: {test_id}")
-    print(f"数据目录: {data_dir}")
-    
-    # 检查数据目录是否存在
+    print(f'Test set:{test_id}')
+    print(f'Data directory:{data_dir}')
     if not os.path.exists(data_dir):
-        print(f"✗ 数据目录不存在: {data_dir}")
+        print(f'✗ The data directory does not exist:{data_dir}')
         return
-    
-    # 获取一个视频文件
     videos = [f for f in os.listdir(data_dir) if f.endswith('_rgb.mp4')]
     if not videos:
-        print(f"✗ 目录中没有找到rgb.mp4文件")
+        print(f'✗ The rgb.mp4 file was not found in the directory')
         return
-    
-    # 选择第一个视频
     video_file = videos[0]
     video_path = os.path.join(data_dir, video_file)
-    
-    print(f"\n测试视频: {video_file}")
-    print(f"完整路径: {video_path}")
-    
-    # 获取数据集类和GT数据
+    print(f'\nTest video:{video_file}')
+    print(f'Full path:{video_path}')
     dataset_class = analyzer.version_dataset_mapping.get(version_name)
-    print(f"数据集类: {dataset_class}")
-    
+    print(f'Dataset class:{dataset_class}')
     gt_data = analyzer.get_gt_data(data_dir, dataset_class, version_config['property'])
     gt_value = analyzer.get_gt_value(video_file, gt_data, dataset_class, version_config['property'])
-    print(f"GT值: {gt_value}")
-    
-    print("\n" + "=" * 80)
-    print("开始GPT分析...")
-    print("=" * 80)
-    
+    print(f'GT value:{gt_value}')
+    print('\n' + '=' * 80)
+    print('Start GPT analysis...')
+    print('=' * 80)
     try:
-        # 进行GPT分析
-        gpt_result = analyzer.analyze_single_video_with_gpt(
-            video_path, 
-            version_config['property'],
-            max_frames=8,  # 少量帧用于测试
-            frame_size=(320, 240),  # 小分辨率
-            # model_version="gpt-4o"  # 使用默认模型
-            model_version="gemini-2.5-pro"
-        )
-        
-        print(f"\n" + "=" * 80)
-        print("提取预测值...")
-        print("=" * 80)
-        
-        # 提取预测值（这里会打印调试信息）
+        gpt_result = analyzer.analyze_single_video_with_gpt(video_path, version_config['property'], max_frames=8, frame_size=(320, 240), model_version='gemini-2.5-pro')
+        print(f'\n' + '=' * 80)
+        print('Extract predicted values...')
+        print('=' * 80)
         predicted_value = analyzer.extract_predicted_value(gpt_result, version_config['property'])
-        
-        print(f"\n" + "=" * 80)
-        print("测试结果总结")
-        print("=" * 80)
-        print(f"视频: {video_file}")
-        print(f"属性: {version_config['property']}")
-        print(f"GT值: {gt_value}")
-        print(f"预测值: {predicted_value}")
-        
+        print(f'\n' + '=' * 80)
+        print('Summary of test results')
+        print('=' * 80)
+        print(f'video:{video_file}')
+        print(f"property:{version_config['property']}")
+        print(f'GT value:{gt_value}')
+        print(f'Predicted value:{predicted_value}')
         if predicted_value is not None:
-            print("✓ 成功提取预测值")
+            print('✓ Successfully extracted predicted values')
         else:
-            print("✗ 未能提取预测值")
-            
+            print('✗ Failed to extract predicted values')
     except Exception as e:
-        print(f"✗ 分析失败: {e}")
+        print(f'✗ Analysis failed:{e}')
         import traceback
         traceback.print_exc()
 
 def main():
-    """主函数"""
     test_single_video()
-
-if __name__ == "__main__":
-    main() 
+if __name__ == '__main__':
+    main()

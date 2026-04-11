@@ -1,40 +1,40 @@
 #!/bin/bash
 # Friction Relative Ablation Study - 100 Samples (Gemini Only)
-# Gemini-2.5-Pro模型的friction relative ablation实验
-# 每个实验使用100个样本，消融单个prompting功能（除了oracle）
+# Friction relative ablation experiment of Gemini-2.5-Pro model
+# Each experiment uses 100 samples and ablates a single prompting function (except oracle)
 
-# 设置专用API key
-: "${OPENAI_API_KEY:?请先 export OPENAI_API_KEY}"
+# Set dedicated API key
+: "${OPENAI_API_KEY:? Please export OPENAI_API_KEY first}"
 
-echo "开始执行 Friction Relative Ablation Study (100 samples)..."
-echo "模型：Gemini-2.5-Pro"
-echo "4个实验（除了Oracle），每个实验100个样本"
-echo "使用API Key: ${OPENAI_API_KEY:0:10}..."
-echo "预计总时间: 2.7 小时"
+echo "Start executing Friction Relative Ablation Study (100 samples)..."
+echo "Model: Gemini-2.5-Pro"
+echo "4 experiments (except Oracle), 100 samples each"
+echo "Use API Key: ${OPENAI_API_KEY:0:10}..."
+echo "Estimated total time: 2.7 Hour"
 echo ""
 
 # =============================================================================
-# Gemini-2.5-Pro 模型实验
+# Gemini-2.5-Pro model experiment
 # =============================================================================
 
-echo "=== Gemini-2.5-Pro 模型实验 ==="
+echo "=== Gemini-2.5-Pro model experiment ==="
 echo ""
 
-# echo "实验 1/4: Gemini Baseline"
-# echo "描述: 标准prompt，作为所有实验的基准"
+# echo "Experiment 1/4: Gemini Baseline"
+# echo "Description: Standard prompt, used as the baseline for all experiments"
 # python run_gpt_physics_tests.py \
-#     --model-version gemini-2.5-pro \
-#     --absolute-samples 0 \
-#     --relative-pairs 100 \
-#     --properties friction \
-#     --output-dir gemini_physics_analysis_results_relative_100samples \
-#     --aggressive-retry \
-#     --auto-confirm
-# echo "✓ Gemini Baseline实验完成"
+# --model-version gemini-2.5-pro \
+# --absolute-samples 0 \
+# --relative-pairs 100 \
+# --properties friction \
+# --output-dir gemini_physics_analysis_results_relative_100samples \
+# --aggressive-retry \
+# --auto-confirm
+# echo "✓ Gemini Baseline experiment completed"
 # echo ""
 
-echo "实验 2/4: Gemini + FrameIndex"
-echo "描述: 为每帧添加显式索引标识"
+echo "Experiment 2/4: Gemini + FrameIndex"
+echo "Description: Add explicit index identifier to each frame"
 python run_gpt_physics_tests.py \
     --model-version gemini-2.5-pro \
     --absolute-samples 0 \
@@ -44,37 +44,37 @@ python run_gpt_physics_tests.py \
     --output-dir gemini_physics_analysis_results_relative_100samples_frameindex \
     --aggressive-retry \
     --auto-confirm
-echo "✓ Gemini + FrameIndex实验完成"
+echo "✓ Gemini + FrameIndex experiment completed"
 echo ""
 
-# echo "实验 3/4: Gemini + ICL"
-# echo "描述: 提供in-context learning示例"
+# echo "Experiment 3/4: Gemini + ICL"
+# echo "Description: Provide in-context learning examples"
 # python run_gpt_physics_tests.py \
-#     --model-version gemini-2.5-pro \
-#     --absolute-samples 0 \
-#     --relative-pairs 100 \
-#     --properties friction \
-#     --icl-example \
-#     --output-dir gemini_physics_analysis_results_relative_100samples_icl \
-#     --aggressive-retry \
-#     --auto-confirm
-# echo "✓ Gemini + ICL实验完成"
+# --model-version gemini-2.5-pro \
+# --absolute-samples 0 \
+# --relative-pairs 100 \
+# --properties friction \
+# --icl-example \
+# --output-dir gemini_physics_analysis_results_relative_100samples_icl \
+# --aggressive-retry \
+# --auto-confirm
+# echo "✓ Gemini + ICL experiment completed"
 # echo ""
 
-# echo "实验 4/4: Gemini + Concat"
-# echo "描述: 使用拼接模式比较视频"
+# echo "Experiment 4/4: Gemini + Concat"
+# echo "Description: Compare videos using stitching mode"
 # python run_gpt_physics_tests.py \
-#     --model-version gemini-2.5-pro \
-#     --absolute-samples 0 \
-#     --relative-pairs 100 \
-#     --properties friction \
-#     --concat-mode \
-#     --output-dir gemini_physics_analysis_results_relative_100samples_concat \
-#     --aggressive-retry \
-#     --auto-confirm
-# echo "✓ Gemini + Concat实验完成"
+# --model-version gemini-2.5-pro \
+# --absolute-samples 0 \
+# --relative-pairs 100 \
+# --properties friction \
+# --concat-mode \
+# --output-dir gemini_physics_analysis_results_relative_100samples_concat \
+# --aggressive-retry \
+# --auto-confirm
+# echo "✓ Gemini + Concat experiment completed"
 # echo ""
 
-echo "🎉 所有 Friction Relative Ablation 实验完成！"
-echo "总共完成4个实验，每个100个样本"
-echo "结果保存在各自的输出目录中"
+echo "🎉 All Friction Relative Ablation experiments completed!"
+echo "Complete a total of 4 experiments, each with 100 samples"
+echo "Results are saved in respective output directories"

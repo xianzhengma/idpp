@@ -1,248 +1,144 @@
-#!/usr/bin/env python3
-"""
-生成最终正确的所有物理属性汇总报告
-应用正确的过滤条件：只对elasticity的绝对值预测任务过滤GT值<0.1
-相对比较任务保持原始数据不过滤
-"""
-
 import pandas as pd
 import numpy as np
 from datetime import datetime
 
-
 def generate_final_correct_summary():
-    """
-    生成最终正确的所有物理属性综合汇总
-    """
-    
-    print("="*100)
-    print("🔬 GEMINI 2.5 PRO 物理属性预测消融实验 - 最终正确分析报告")
-    print("✅ 过滤条件已修正：仅对Elasticity绝对值预测应用GT值<0.1过滤")
-    print("="*100)
-    
-    print("\n📊 实验设置:")
-    print("   • 模型: Gemini 2.5 Pro")
-    print("   • 物理属性: Friction, Viscosity, Elasticity")
-    print("   • 任务类型: Absolute Prediction & Relative Comparison")
-    print("   • 样本数量: 100 samples per experiment (分成5份，每份20个)")
-    print("   • 测试集: Test-1, Test-2, Test-3")
-    print("   • ✅ 数据质量控制: 仅对Elasticity绝对值预测过滤GT值<0.1")
-    print("   • ✅ 相对比较任务保持原始数据（无过滤）")
-    
-    # 最终正确的绝对值预测结果汇总
-    print(f"\n{'='*100}")
-    print("Table 1: ABSOLUTE PREDICTION RESULTS - All Physics Properties (Final Correct)")
-    print("="*100)
-    
-    absolute_results = {
-        'Elasticity': {
-            'Baseline': [-0.03, 0.26, 0.06, 0.10],
-            '+ Frame Index Provided': [0.06, 0.35, 0.55, 0.32],
-            '+ Few-Shot Examples': [0.39, 0.34, 0.24, 0.33],
-            '+ Oracle Estimation Teaching': [0.19, 0.14, 0.24, 0.19]
-        },
-        'Friction': {
-            'Baseline': [0.06, 0.09, 0.19, 0.11],
-            '+ Frame Index Provided': [0.11, 0.05, -0.02, 0.05],
-            '+ Few-Shot Examples': [-0.07, 0.11, 0.12, 0.05],
-            '+ Oracle Estimation Teaching': [0.06, 0.17, 0.03, 0.09]
-        },
-        'Viscosity': {
-            'Baseline': [0.05, 0.12, 0.35, 0.17],
-            '+ Frame Index Provided': [0.01, 0.02, 0.37, 0.13],
-            '+ Few-Shot Examples': [0.07, -0.05, 0.29, 0.10],
-            '+ Oracle Estimation Teaching': [0.15, 0.04, 0.29, 0.16]
-        }
-    }
-    
-    # 显示绝对值预测表格
+    print('=' * 100)
+    print('🔬 GEMINI 2.5 PRO physical property prediction ablation experiment - final correct analysis report')
+    print('✅Filter conditions have been corrected: only apply GT value <0.1 filter to Elasticity absolute value predictions')
+    print('=' * 100)
+    print('\n📊 Experimental settings:')
+    print('• Model: Gemini 2.5 Pro')
+    print('• Physical properties: Friction, Viscosity, Elasticity')
+    print('• Task type: Absolute Prediction & Relative Comparison')
+    print('• Number of samples: 100 samples per experiment (divided into 5 parts, 20 samples each)')
+    print('• Test set: Test-1, Test-2, Test-3')
+    print('• ✅ Data quality control: Only filter GT values ​​<0.1 for Elasticity absolute value predictions')
+    print('• ✅ Relative comparison tasks keep original data (no filtering)')
+    print(f"\n{'=' * 100}")
+    print('Table 1: ABSOLUTE PREDICTION RESULTS - All Physics Properties (Final Correct)')
+    print('=' * 100)
+    absolute_results = {'Elasticity': {'Baseline': [-0.03, 0.26, 0.06, 0.1], '+ Frame Index Provided': [0.06, 0.35, 0.55, 0.32], '+ Few-Shot Examples': [0.39, 0.34, 0.24, 0.33], '+ Oracle Estimation Teaching': [0.19, 0.14, 0.24, 0.19]}, 'Friction': {'Baseline': [0.06, 0.09, 0.19, 0.11], '+ Frame Index Provided': [0.11, 0.05, -0.02, 0.05], '+ Few-Shot Examples': [-0.07, 0.11, 0.12, 0.05], '+ Oracle Estimation Teaching': [0.06, 0.17, 0.03, 0.09]}, 'Visibility': {'Baseline': [0.05, 0.12, 0.35, 0.17], '+ Frame Index Provided': [0.01, 0.02, 0.37, 0.13], '+ Few-Shot Examples': [0.07, -0.05, 0.29, 0.1], '+ Oracle Estimation Teaching': [0.15, 0.04, 0.29, 0.16]}}
     print(f"\n{'Property':<12} | {'Strategy':<35} | {'Test-1':<8} {'Test-2':<8} {'Test-3':<8} {'Avg':<8}")
-    print("-" * 100)
-    
+    print('-' * 100)
     for property_name, strategies in absolute_results.items():
         first_row = True
         for strategy, values in strategies.items():
-            prop_display = property_name if first_row else ""
+            prop_display = property_name if first_row else ''
             if property_name == 'Elasticity' and first_row:
-                prop_display += " ✅"  # 标记已正确过滤
-            print(f"{prop_display:<12} | {strategy:<35} | {values[0]:>7.2f} {values[1]:>8.2f} {values[2]:>8.2f} {values[3]:>8.2f}")
+                prop_display += '✅'
+            print(f'{prop_display:<12} | {strategy:<35} | {values[0]:>7.2f} {values[1]:>8.2f} {values[2]:>8.2f} {values[3]:>8.2f}')
             first_row = False
-        print("-" * 100)
-    
-    # 最终正确的相对比较结果汇总
-    print(f"\nTable 2: RELATIVE COMPARISON RESULTS - All Physics Properties (Final Correct)")
-    print("="*100)
-    
-    relative_results = {
-        'Elasticity': {
-            'Baseline': [0.51, 0.74, 0.55, 0.60],
-            '+ Black Frames in Between': [0.56, 0.72, 0.63, 0.64],
-            '+ Frame Index Provided': [0.54, 0.80, 0.52, 0.62],
-            '+ Few-Shot Examples': [0.43, 0.65, 0.52, 0.54],
-            '+ Oracle Estimation Teaching': [0.63, 0.79, 0.54, 0.65]  # 修正回0.65!
-        },
-        'Friction': {
-            'Baseline': [0.46, 0.45, 0.97, 0.63],
-            '+ Black Frames in Between': [0.47, 0.57, 0.93, 0.66],
-            '+ Frame Index Provided': [0.54, 0.55, 0.98, 0.69],
-            '+ Few-Shot Examples': [0.49, 0.47, 0.98, 0.65],
-            '+ Oracle Estimation Teaching': [0.52, 0.59, 0.97, 0.69]
-        },
-        'Viscosity': {
-            'Baseline': [0.67, 0.72, 0.95, 0.78],
-            '+ Black Frames in Between': [0.59, 0.59, 0.94, 0.71],
-            '+ Frame Index Provided': [0.68, 0.63, 0.97, 0.76],
-            '+ Few-Shot Examples': [0.68, 0.71, 0.97, 0.79],
-            '+ Oracle Estimation Teaching': [0.48, 0.71, 0.92, 0.70]
-        }
-    }
-    
-    # 显示相对比较表格
+        print('-' * 100)
+    print(f'\nTable 2: RELATIVE COMPARISON RESULTS - All Physics Properties (Final Correct)')
+    print('=' * 100)
+    relative_results = {'Elasticity': {'Baseline': [0.51, 0.74, 0.55, 0.6], '+ Black Frames in Between': [0.56, 0.72, 0.63, 0.64], '+ Frame Index Provided': [0.54, 0.8, 0.52, 0.62], '+ Few-Shot Examples': [0.43, 0.65, 0.52, 0.54], '+ Oracle Estimation Teaching': [0.63, 0.79, 0.54, 0.65]}, 'Friction': {'Baseline': [0.46, 0.45, 0.97, 0.63], '+ Black Frames in Between': [0.47, 0.57, 0.93, 0.66], '+ Frame Index Provided': [0.54, 0.55, 0.98, 0.69], '+ Few-Shot Examples': [0.49, 0.47, 0.98, 0.65], '+ Oracle Estimation Teaching': [0.52, 0.59, 0.97, 0.69]}, 'Viscosity': {'Baseline': [0.67, 0.72, 0.95, 0.78], '+ Black Frames in Between': [0.59, 0.59, 0.94, 0.71], '+ Frame Index Provided': [0.68, 0.63, 0.97, 0.76], '+ Few-Shot Examples': [0.68, 0.71, 0.97, 0.79], '+ Oracle Estimation Teaching': [0.48, 0.71, 0.92, 0.7]}}
     print(f"\n{'Property':<12} | {'Strategy':<35} | {'Test-1':<8} {'Test-2':<8} {'Test-3':<8} {'Avg':<8}")
-    print("-" * 100)
-    
+    print('-' * 100)
     for property_name, strategies in relative_results.items():
         first_row = True
         for strategy, values in strategies.items():
-            prop_display = property_name if first_row else ""
+            prop_display = property_name if first_row else ''
             if property_name == 'Elasticity' and first_row:
-                prop_display += " ✅"  # 标记无过滤（正确）
-            print(f"{prop_display:<12} | {strategy:<35} | {values[0]:>7.2f} {values[1]:>8.2f} {values[2]:>8.2f} {values[3]:>8.2f}")
+                prop_display += '✅'
+            print(f'{prop_display:<12} | {strategy:<35} | {values[0]:>7.2f} {values[1]:>8.2f} {values[2]:>8.2f} {values[3]:>8.2f}')
             first_row = False
-        print("-" * 100)
-    
-    # 最佳策略分析
-    print(f"\n{'='*100}")
-    print("🏆 最佳策略分析 (最终正确结果)")
-    print("="*100)
-    
-    print(f"\n📈 绝对值预测任务 (Pearson Correlation):")
-    print(f"   🥇 Elasticity: + Few-Shot Examples (0.33) - 比Baseline提升230.0% ✅")
-    print(f"   🥇 Friction:    Baseline (0.11) - 基准表现最佳")  
-    print(f"   🥇 Viscosity:   Baseline (0.17) - 基准表现最佳")
-    
-    print(f"\n📈 相对比较任务 (AUC):")
-    print(f"   🥇 Elasticity: + Oracle Estimation Teaching (0.65) - 比Baseline提升8.3% ✅")
-    print(f"   🥇 Friction:    + Frame Index Provided & + Oracle Estimation Teaching (0.69) - 比Baseline提升9.5%")
-    print(f"   🥇 Viscosity:   + Few-Shot Examples (0.79) - 比Baseline提升1.3%")
-    
-    # 修正前后对比
-    print(f"\n{'='*100}")
-    print("🔧 过滤条件修正前后对比")
-    print("="*100)
-    
-    print(f"\n📊 Elasticity 结果修正:")
-    print(f"   绝对值预测:")
-    print(f"   • ✅ 正确过滤GT值<0.1样本")
-    print(f"   • 每个实验移除3-5个样本 (3-5%)")
-    print(f"   • 结果保持不变: Few-Shot Examples最佳 (0.33)")
-    
-    print(f"\n   相对比较:")
-    print(f"   • ❌ 之前错误: 过滤GT值<0.1样本对，AUC降至0.55")
-    print(f"   • ✅ 现在正确: 保持原始数据，AUC恢复到0.65")
-    print(f"   • 📈 修正后提升: 相对比较效果显著改善")
-    
-    print(f"\n⚠️  修正意义:")
-    print(f"   • 相对比较任务关注两值的相对大小关系，而非绝对值")
-    print(f"   • GT值较小的样本对在相对比较中仍有意义")
-    print(f"   • 过滤会损失有效的对比信息")
-    
-    # 策略有效性分析
-    print(f"\n{'='*100}")
-    print("💡 策略有效性跨属性分析 (基于最终正确数据)")
-    print("="*100)
-    
-    print(f"\n🔍 策略表现总结:")
-    print(f"   1. + Oracle Estimation Teaching:")
-    print(f"      🏆 在Elasticity相对比较上表现最佳 (0.65) ✅")
-    print(f"      🏆 在Friction相对比较上表现最佳 (0.69)")
-    print(f"      📈 相对比较任务的绝对王者")
-    
-    print(f"\n   2. + Few-Shot Examples:")
-    print(f"      🏆 在Elasticity绝对值预测上表现最佳 (0.33) ✅") 
-    print(f"      🏆 在Viscosity相对比较上表现最佳 (0.79)")
-    print(f"      📈 跨任务类型的全能选手")
-    
-    print(f"\n   3. + Frame Index Provided:")
-    print(f"      🏆 在Friction相对比较上并列最佳 (0.69)")
-    print(f"      ✅ 在Elasticity绝对值预测上表现良好 (0.32)")
-    print(f"      📈 稳定可靠的中坚力量")
-    
-    print(f"\n   4. Baseline:")
-    print(f"      🏆 在Friction和Viscosity绝对值预测上表现最佳")
-    print(f"      ❌ 在Elasticity任务上表现较弱")
-    print(f"      💡 简单属性首选，复杂属性需增强")
-    
-    # 实践建议
-    print(f"\n{'='*100}")
-    print("🎯 最终实践建议")
-    print("="*100)
-    
-    print(f"\n💼 按任务类型和属性复杂度选择策略:")
-    
-    print(f"\n   📏 绝对值预测:")
-    print(f"      - Elasticity (复杂) → Few-Shot Examples (0.33)")
-    print(f"      - Friction/Viscosity (简单) → Baseline")
-    
-    print(f"\n   🔄 相对比较:")
-    print(f"      - Elasticity (复杂) → Oracle Estimation Teaching (0.65)")
-    print(f"      - Friction → Oracle Teaching/Frame Index (0.69)")
-    print(f"      - Viscosity → Few-Shot Examples (0.79)")
-    
-    print(f"\n   🔧 数据质量控制原则:")
-    print(f"      • 绝对值预测: 过滤无意义的极小GT值")
-    print(f"      • 相对比较: 保持所有样本对，维持对比信息完整性")
-    print(f"      • 根据任务特性制定不同的数据质量策略")
-    
-    print(f"\n🚀 高级策略建议:")
-    print(f"   🏆 Oracle Estimation Teaching: 相对比较专家")
-    print(f"   🏆 Few-Shot Examples: 全能型选手，特别适合复杂属性")
-    print(f"   ⚖️  Frame Index Provided: 稳定的中坚策略")
-    print(f"   💰 Baseline: 简单高效，适合简单属性")
-    print(f"   🎯 建议ensemble多种策略获得最佳鲁棒性")
-    
-    print(f"\n{'='*100}")
-    print("✅ 最终正确综合分析完成")
-    print("="*100)
-    
-    # 生成最终正确的CSV总结
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    
-    # 创建绝对值预测汇总
-    abs_data = []
-    for prop, strategies in absolute_results.items():
+        print('-' * 100)
+    print(f"\n{'=' * 100}")
+    print('🏆 Best strategy analysis (final correct result)')
+    print('=' * 100)
+    print(f'\n📈 Absolute value prediction task (Pearson Correlation):')
+    print(f'🥇 Elasticity: + Few-Shot Examples (0.33) - 230.0% better than Baseline ✅')print(f'🥇 Friction: Baseline (0.11) - Best benchmark performance')
+    print(f'🥇 Viscosity: Baseline (0.17) - Best benchmark performance')
+    print(f'\n📈 relative comparison task (AUC):')
+    print(f'🥇 Elasticity: + Oracle Estimation Teaching (0.65) - 8.3% higher than Baseline ✅')
+    print(f'🥇 Friction: + Frame Index Provided & + Oracle Estimation Teaching (0.69) - 9.5% higher than Baseline')
+    print(f'🥇 Viscosity: + Few-Shot Examples (0.79) - 1.3% better than Baseline')
+    print(f"\n{'=' * 100}")
+    print('🔧 Comparison before and after filter condition correction')
+    print('=' * 100)
+    print(f'\n📊 Elasticity result correction:')
+    print(f'Absolute value prediction:')
+    print(f'• ✅ Correctly filter samples with GT value <0.1')
+    print(f'• Remove 3-5 samples per experiment (3-5%)')
+    print(f'• Results remain the same: Few-Shot Examples best (0.33)')
+    print(f'\n relative comparison:')
+    print(f'• ❌ Previous error: filtering sample pairs with GT value <0.1, AUC dropped to 0.55')
+    print(f'• ✅ Now correct: keep original data, AUC restored to 0.65')
+    print(f'• 📈 Improvement after correction: The relative comparison effect is significantly improved')
+    print(f'\n⚠️ Corrected meaning:')
+    print(f'• Relative comparison tasks focus on the relative size relationship between two values, rather than the absolute value.')
+    print(f'• Sample pairs with smaller GT values ​​are still meaningful in relative comparisons')
+    print(f'• Filtering will lose useful contrasting information')
+    print(f"\n{'=' * 100}")
+    print('💡 Cross-attribute analysis of strategy effectiveness (based on final correct data)')
+    print('=' * 100)
+    print(f'\n🔍 Strategy performance Summarize:')
+    print(f' 1. + Oracle Estimation Teaching:')
+    print(f'🏆 Best performer in Elasticity relative comparison (0.65) ✅')
+    print(f'🏆 Best performer in Friction relative comparison (0.69)')
+    print(f'📈 The absolute king of relative comparison tasks')
+    print(f'\n 2. + Few-Shot Examples:')
+    print(f'🏆 Best performer in Elasticity absolute value prediction (0.33) ✅')
+    print(f'🏆 Best performer on Viscosity relative comparison (0.79)')
+    print(f'📈 An all-rounder across task types')
+    print(f'\n 3. + Frame Index Provided:')
+    print(f'🏆 Tied for best in Friction relative comparison (0.69)')
+    print(f'✅ Performs well in Elasticity absolute value prediction (0.32)')
+    print(f'📈 Stable and reliable backbone')
+    print(f'\n 4. Baseline:')
+    print(f'🏆 Best performance in Friction and Viscosity absolute value prediction')
+    print(f'❌ Weak performance on Elasticity tasks')
+    print(f'💡 Simple attributes are preferred, complex attributes need to be enhanced')
+    print(f"\n{'=' * 100}")
+    print('🎯 Final practical advice')
+    print('=' * 100)
+    print(f'\n💼 Select strategy according to task type and property complexity:')
+    print(f'\n📏 Absolute value prediction:')
+    print(f'- Elasticity (complex) → Few-Shot Examples (0.33)')
+    print(f'- Friction/Viscosity (easy) → Baseline')
+    print(f'\n 🔄 relative comparison:')
+    print(f'- Elasticity (complexity) → Oracle Estimation Teaching (0.65)')
+    print(f' - Friction → Oracle Teaching/Frame Index (0.69)')
+    print(f' - Viscosity → Few-Shot Examples (0.79)')
+    print(f'\n 🔧 Data quality control principle:')
+    print(f'• Absolute value prediction: filter out meaningless very small GT values')
+    print(f'• Relative comparison: Keep all sample pairs to maintain the integrity of comparison information')
+    print(f'• Develop different data quality strategies based on task characteristics')
+    print(f'\n🚀 Advanced strategy suggestions:')
+    print(f'🏆 Oracle Estimation Teaching: Relative Comparison Expert')
+    print(f'🏆 Few-Shot Examples: All-round player, especially suitable for complex attributes')
+    print(f'⚖️ Frame Index Provided: Stable backbone strategy')
+    print(f'💰 Baseline: Simple and efficient, suitable for simple attributes')
+    print(f'🎯 It is recommended to ensemble multiple strategies to obtain the best robustness')
+    print(f"\n{'=' * 100}")
+    print('✅ The final correct and comprehensive analysis is completed')
+    print('=' * 100)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    abs_data = []for prop, strategies in absolute_results.items():
         for strategy, values in strategies.items():
             abs_data.append([prop, strategy] + values)
-    
     abs_df = pd.DataFrame(abs_data, columns=['Property', 'Strategy', 'Test-1', 'Test-2', 'Test-3', 'Avg'])
-    abs_filename = f"gemini_absolute_all_physics_FINAL_summary_{timestamp}.csv"
+    abs_filename = f'gemini_absolute_all_physics_FINAL_summary_{timestamp}.csv'
     abs_df.to_csv(abs_filename, index=False)
-    
-    # 创建相对比较汇总
     rel_data = []
     for prop, strategies in relative_results.items():
         for strategy, values in strategies.items():
             rel_data.append([prop, strategy] + values)
-    
     rel_df = pd.DataFrame(rel_data, columns=['Property', 'Strategy', 'Test-1', 'Test-2', 'Test-3', 'Avg'])
-    rel_filename = f"gemini_relative_all_physics_FINAL_summary_{timestamp}.csv"
+    rel_filename = f'gemini_relative_all_physics_FINAL_summary_{timestamp}.csv'
     rel_df.to_csv(rel_filename, index=False)
-    
-    print(f"\n📁 最终绝对值预测汇总表格已保存为: {abs_filename}")
-    print(f"📁 最终相对比较汇总表格已保存为: {rel_filename}")
-    
-    print(f"\n🎉 最终正确的分析文件已生成，包括:")
-    print(f"   • 3个单属性详细表格 (elasticity✅, friction, viscosity)")
-    print(f"   • 2个最终正确综合汇总表格")
-    print(f"   • 过滤条件修正前后对比分析") 
-    print(f"   • 基于正确数据的最终策略建议")
-    
-    print(f"\n✅ 重要修正:")
-    print(f"   • Elasticity绝对值预测: 正确过滤GT值<0.1 ✅")
-    print(f"   • Elasticity相对比较: 保持原始数据，AUC从0.55恢复到0.65 ✅")  
-    print(f"   • 数据质量控制策略针对任务类型进行优化 ✅")
-    print(f"{'='*100}")
-
-
-if __name__ == "__main__":
+    print(f'\n📁 The final Absolute value prediction summary table has been saved as: {abs_filename}')
+    print(f'📁 The final relative comparison summary table has been saved as:{rel_filename}')
+    print(f'\n🎉 The final correct analysis file has been generated, including:')
+    print(f'• 3 detailed tables for single attributes (elasticity✅, friction, viscosity)')
+    print(f'• 2 final correct comprehensive summary tables')
+    print(f'• Comparative analysis before and after filter condition correction')
+    print(f'• Final strategy recommendations based on the right data')
+    print(f'\n✅ Important correction:')
+    print(f'• Elasticity absolute value prediction: Correctly filter GT value <0.1 ✅')
+    print(f'• Elasticity relative comparison: Keeping the original data, AUC recovers from 0.55 to 0.65 ✅')
+    print(f'• Data quality control strategy optimized for task type ✅')
+    print(f"{'=' * 100}")
+if __name__ == '__main__':
     generate_final_correct_summary()

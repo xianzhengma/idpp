@@ -1,5 +1,5 @@
 {
-  "_comment": "将各路径替换为解压后的评测数据目录，或设置 SVD_ROOT 后使用与主仓库一致的子目录名。",
+  "_comment": "Replace each path with your extracted eval data root, or set SVD_ROOT and use the same subfolder names as the main repo.",
   "v119_vjepa": {
     "property": "viscosity",
     "type": "absolute",

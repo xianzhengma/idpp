@@ -1,35 +1,35 @@
-# 论文 Table 1 — 复现与开源对照基准
+# Paper Table 1 — reproduction and open-source reference
 
-本文档由论文主表 **Table 1. Results for relative value comparison and absolute value prediction.** 整理而成，作为开源清理、自检与 README 的**数值对照权威**（以论文发表版本为准）。
-
----
-
-## 1. 指标说明
-
-| 列块 | 指标 | 取值范围 | 含义（与论文一致） |
-|------|------|----------|-------------------|
-| **Rel. Test-1/2/3** | ROC AUC | [0, 1] | 相对大小比较 |
-| **Abs. Test-1/2/3** | Pearson Corr. | [-1, 1] | 绝对值预测与真值相关 |
-| **\*** | — | — | 使用与测试不相交的真实域数据做 **domain adaptation** 后的结果 |
-
-**测试划分（论文定义）**
-
-- **Test-1**：合成数据、分布内测试划分  
-- **Test-2**：合成数据、分布外测试划分  
-- **Test-3**：真实世界测试划分  
+This document transcribes the main paper table **Table 1. Results for relative value comparison and absolute value prediction.** It is the **authoritative numeric reference** for open-source checks, self-tests, and README claims (paper-published version).
 
 ---
 
-## 2. 与本仓库版本代号对应
+## 1. Metrics
 
-开源计划与内部索引文档中：
+| Block | Metric | Range | Meaning (as in the paper) |
+|------|--------|-------|-----------------------------|
+| **Rel. Test-1/2/3** | ROC AUC | [0, 1] | Relative ordering / pairwise comparison |
+| **Abs. Test-1/2/3** | Pearson Corr. | [-1, 1] | Absolute value prediction vs. ground truth |
+| **\*** | — | — | Result after **domain adaptation** on real-domain data disjoint from the test set |
 
-| 论文表中的方法 | 本仓库代号 | 说明与索引 |
-|----------------|------------|------------|
-| **DynamiCrafter** | **E** | DynamicCrafter；论文表数字与 [`paper_scores_paths_and_checkpoints.md`](../paper_scores_paths_and_checkpoints.md) **§3 newdata（`e729_nd_*`）** 对齐（见该文档与 [`paper_scores_E_7.29.md`](../paper_scores_E_7.29.md)）。 |
-| **V-JEPA-2** | **B** | V-JEPA mirror 评测；与 [`paper_scores_B_sources_and_checkpoints.md`](../paper_scores_B_sources_and_checkpoints.md) **B 列** 对齐。 |
+**Test splits (paper)**
 
-**自检约定（与当前开源计划一致）**：优先以 **Elasticity、Test-3、B 与 E、相对+绝对** 四条线为门禁；全表数值仍以下文各小节为准，便于扩展其它 property。
+- **Test-1**: synthetic, in-distribution test split  
+- **Test-2**: synthetic, out-of-distribution test split  
+- **Test-3**: real-world test split  
+
+---
+
+## 2. Mapping to repository codenames
+
+In the open-source plan and internal index notes:
+
+| Method in the table | Codename here | Notes |
+|---------------------|---------------|--------|
+| **DynamiCrafter** | **E** | Aligns with internal `e729_nd_*` newdata runs and checkpoint notes. |
+| **V-JEPA-2** | **B** | V-JEPA mirror evaluation; aligns with internal B-line checkpoints. |
+
+**Gate (current open-source plan)**: prioritize **Elasticity, Test-3, B and E, relative + absolute** as the acceptance gate; full-table values below remain the reference for other properties.
 
 ---
 
@@ -74,14 +74,14 @@
 
 ---
 
-## 6. 维护说明
+## 6. Maintenance
 
-- 若论文勘误或相机稿更新 Table 1，应**先改论文**，再同步更新本文件，并在 changelog 中记录日期与变更单元格。  
-- 内部 `paper_scores_*.md` 若与主表出现系统性差异，以 **本文件（论文表）** 为对外宣称基准，并在技术说明中解释舍入、子集或协议差异（例如 E 侧 newdata 与表中一位小数口径）。
-- **E（DynamiCrafter）**：工程上跑 `e729_nd_*` 与 `calculate_e729_newdata_dc_scores.py` 时，若得到的数值与上表中 **DynamiCrafter** 行不一致，仍以 **本文件表格** 为论文事实，并排查数据子集、后处理或与 camera-ready 表是否同源。
+- If the paper corrects Table 1, **update the paper first**, then sync this file and record the date and cells in a changelog.  
+- If internal score logs diverge from this table, **this file (paper table)** is the external reference; document rounding, subset, or protocol differences in technical notes.  
+- **E (DynamiCrafter)**: if `e729_nd_*` runs and `calculate_e729_newdata_dc_scores.py` disagree with the **DynamiCrafter** row here, treat **this table** as ground truth and debug data subset, post-processing, or camera-ready rounding.
 
 ---
 
 ## Changelog
 
-- **2026-04-11**：从论文 Table 1 转录全文；建立与仓库 **B / E** 代号及索引文档的交叉引用。
+- **2026-04-11**: Full transcription from paper Table 1; cross-links to B/E codenames.

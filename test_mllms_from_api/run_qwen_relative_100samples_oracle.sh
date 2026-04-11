@@ -1,22 +1,22 @@
 #!/bin/bash
-# Qwen-VL-Max 相对setting测试脚本
-# 样本数: 100个相对配对样本
-# 策略: Oracle策略
-# 物理属性: friction, viscosity, elasticity
+# Qwen-VL-Max relative setting test script
+# Number of samples: 100 relatively paired samples
+# Strategy: Oracle strategy
+# Physical properties:friction, viscosity, elasticity
 
-echo "开始执行 Qwen-VL-Max 相对setting测试..."
-echo "模型: qwen-vl-max"
-echo "设置: 相对setting (100个样本)"
-echo "策略: Oracle策略"
-echo "物理属性: friction, viscosity, elasticity"
-echo "预计总时间: 约3小时"
+echo "Start executing Qwen-VL-Max relative setting test..."
+echo "Model: qwen-vl-max"
+echo "setting: relative setting (100 samples)"
+echo "Strategy: Oracle Policy"
+echo "Physical properties:friction, viscosity, elasticity"
+echo "Estimated total time: about 3Hour"
 echo ""
 
 # =============================================================================
-# Friction 相对测试
+# Friction relative testing
 # =============================================================================
 
-echo "=== 测试 1/3: Friction 相对测试 ==="
+echo "=== Test 1/3: Friction relative test ==="
 python run_gpt_physics_tests.py \
     --model-version qwen-vl-max \
     --absolute-samples 0 \
@@ -25,14 +25,14 @@ python run_gpt_physics_tests.py \
     --follow-oracle-test \
     --output-dir qwen_physics_analysis_results_relative_100samples_oracle \
     --auto-confirm
-echo "✓ Friction 相对测试完成，结果保存在: qwen_physics_analysis_results_relative_100samples_oracle"
+echo "✓ Friction relative test is completed, the results are saved in: qwen_physics_analysis_results_relative_100samples_oracle"
 echo ""
 
 # =============================================================================
-# Viscosity 相对测试
+# Viscosity relative testing
 # =============================================================================
 
-echo "=== 测试 2/3: Viscosity 相对测试 ==="
+echo "=== Test 2/3: Viscosity Relative Test ==="
 python run_gpt_physics_tests.py \
     --model-version qwen-vl-max \
     --absolute-samples 0 \
@@ -41,14 +41,14 @@ python run_gpt_physics_tests.py \
     --follow-oracle-test \
     --output-dir qwen_physics_analysis_results_relative_100samples_oracle \
     --auto-confirm
-echo "✓ Viscosity 相对测试完成，结果保存在: qwen_physics_analysis_results_relative_100samples_oracle"
+echo "✓ Viscosity relative test is completed, the results are saved in: qwen_physics_analysis_results_relative_100samples_oracle"
 echo ""
 
 # =============================================================================
-# Elasticity 相对测试
+# Elasticity relative testing
 # =============================================================================
 
-echo "=== 测试 3/3: Elasticity 相对测试 ==="
+echo "=== Test 3/3: Elasticity relative test ==="
 python run_gpt_physics_tests.py \
     --model-version qwen-vl-max \
     --absolute-samples 0 \
@@ -57,21 +57,21 @@ python run_gpt_physics_tests.py \
     --follow-oracle-test \
     --output-dir qwen_physics_analysis_results_relative_100samples_oracle \
     --auto-confirm
-echo "✓ Elasticity 相对测试完成，结果保存在: qwen_physics_analysis_results_relative_100samples_oracle"
+echo "✓ Elasticity relative test is completed, the results are saved in: qwen_physics_analysis_results_relative_100samples_oracle"
 echo ""
 
 # =============================================================================
-# 完成总结
+# Complete summary
 # =============================================================================
 
-echo "🎉 Qwen-VL-Max 相对setting测试完成！"
+echo "🎉 Qwen-VL-Max relative setting test completed!"
 echo ""
-echo "测试总结:"
-echo "1. Friction 相对 (100样本)   -> qwen_physics_analysis_results_relative_100samples_oracle"
-echo "2. Viscosity 相对 (100样本)  -> qwen_physics_analysis_results_relative_100samples_oracle"
-echo "3. Elasticity 相对 (100样本) -> qwen_physics_analysis_results_relative_100samples_oracle"
+echo "Test summary:"
+echo "1. Friction relative (100 samples) -> qwen_physics_analysis_results_relative_100samples_oracle"
+echo "2. Viscosity relative (100 samples) -> qwen_physics_analysis_results_relative_100samples_oracle"
+echo "3. Elasticity relative (100 samples) -> qwen_physics_analysis_results_relative_100samples_oracle"
 echo ""
-echo "结果目录列表:"
+echo "Result directory list:"
 ls -d qwen_physics_analysis_results_relative_100samples_oracle 2>/dev/null | sort
 echo ""
-echo "所有测试已完成！" 
+echo "All tests completed!"
