@@ -2,6 +2,8 @@
 
 **Status**: tracked separately from the **code-first** GitHub release. **Model weights and the evaluation dataset are not on the Hub yet**; after upload, replace placeholder IDs in this document with real repos and pin **revision** in the README.
 
+Full checkpoint and dataset enumeration (paper Table 1, 24 data cells, E/B counts) is in [**HF_ASSETS_PAPER_ALIGNMENT.md**](HF_ASSETS_PAPER_ALIGNMENT.md).
+
 ## Placeholder repos
 
 `scripts/download_hf_assets.py` defaults to placeholder IDs:
