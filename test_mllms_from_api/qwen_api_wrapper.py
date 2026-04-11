@@ -20,7 +20,9 @@ class QwenVisionAPI:
             api_key: API密钥，默认从环境变量DASHSCOPE_API_KEY获取
             base_url: API基础URL，默认使用阿里云DashScope
         """
-        self.api_key = api_key or os.getenv("DASHSCOPE_API_KEY") or "sk-34a6731731ed411f91b4c759d1c871d9"
+        self.api_key = api_key or os.getenv("DASHSCOPE_API_KEY") or ""
+        if not self.api_key:
+            raise ValueError("请设置 DASHSCOPE_API_KEY 或传入 api_key")
         self.base_url = base_url or "https://dashscope.aliyuncs.com/compatible-mode/v1"
         
         if not self.api_key:

@@ -4,7 +4,7 @@
 # 每个实验使用100个样本，消融单个prompting功能（除了oracle）
 
 # 设置专用API key
-export OPENAI_API_KEY="sk-Lm4QixFJ69DcjcEAikUB6kuGZ16PGGhD49r9Gx9yCNbDUury"
+: "${OPENAI_API_KEY:?请先 export OPENAI_API_KEY}"
 
 echo "开始执行 Friction Relative Ablation Study (100 samples)..."
 echo "模型：Gemini-2.5-Pro"

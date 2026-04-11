@@ -10,11 +10,12 @@ from openai import OpenAI
 def test_qwen_api_key():
     """测试Qwen API密钥"""
     
-    # 您的API密钥
-    api_key = "sk-34a6731731ed411f91b4c759d1c871d9"
-    
+    api_key = os.environ.get("DASHSCOPE_API_KEY", "").strip()
+    if not api_key:
+        print("请设置环境变量 DASHSCOPE_API_KEY")
+        return False
     print("测试Qwen API密钥...")
-    print(f"API密钥: {api_key}")
+    print("API密钥: (来自环境变量，已隐藏)")
     print(f"API基础URL: https://dashscope-intl.aliyuncs.com/compatible-mode/v1")
     
     try:
@@ -66,7 +67,10 @@ def test_qwen_api_key():
 
 def test_alternative_endpoints():
     """测试不同的API端点"""
-    api_key = "sk-34a6731731ed411f91b4c759d1c871d9"
+    api_key = os.environ.get("DASHSCOPE_API_KEY", "").strip()
+    if not api_key:
+        print("请设置 DASHSCOPE_API_KEY")
+        return
     
     # 可能的端点
     endpoints = [

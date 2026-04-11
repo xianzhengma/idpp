@@ -73,24 +73,10 @@ def gptv_response(prompt, model_version=None, max_retries=8, base_delay=30):
     """
     for idx in range(max_retries):
         try:
-            # 优先从环境变量读取API key，如果没有则使用默认值
-            key = os.environ.get('OPENAI_API_KEY')
+            key = os.environ.get("OPENAI_API_KEY", "").strip()
             if not key:
-                # 备用API key列表
-                api_keys = [
-                    "sk-tYaEN7C1LxqhE2ELmjlMrJruFsca9bzJJgaN1Fv7var6t84V",
-                    "sk-Dj4cowAHLKOVHvNcQD4tb01bPf20QzSjmZT0I4xwDF6BeRAK",
-                    "sk-4fD13XifI46W7eM3crAWeYDvWyWzoSsw66zpw5Us3fHeafGU",
-                    "sk-Lm4QixFJ69DcjcEAikUB6kuGZ16PGGhD49r9Gx9yCNbDUury",
-                    "sk-aZMCHdbKBtvxwo2hc9V8BPsY4j9Dlx8u1xep3DRS26V7VfEh",
-                    "sk-Fc2kqPwHQ2OiPGBBNiTE6uDOiIPnb9jQ8nW1yiq7xXMFmvch",
-                    "sk-MXi7jnG2V2nAlyNni3msvRW9nmWm2V5psga9LZwyDzdvBVAY"
-                ]
-                # 使用第一个作为默认值
-                key = api_keys[0]
-                print(f"警告: 未设置环境变量OPENAI_API_KEY，使用默认API key")
-            else:
-                print(f"使用环境变量中的API key: {key[:10]}...")  # 只显示前10个字符
+                return "GPT Vision API 调用失败: 请设置环境变量 OPENAI_API_KEY"
+            print("使用环境变量 OPENAI_API_KEY（已隐藏完整内容）")
             model_version = "gpt-4o" if model_version == None else model_version
             ip_address = "https://api.chatanywhere.tech/v1/chat/completions"  # 修正API endpoint
             header = {
