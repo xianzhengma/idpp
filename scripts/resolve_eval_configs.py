@@ -28,6 +28,12 @@ def _write_resolved(template_name: str, mapping: dict, out_dir: str) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description='Generate resolved eval YAMLs under SVD_ROOT.')
     parser.add_argument('--svd-root', default=None, help='Override SVD_ROOT (default from env or ./asset_root)')
+    parser.add_argument(
+        '--generated-out-dir',
+        default=None,
+        help='Optional directory for resolved YAMLs (default: configs/reproduce/generated). '
+        'Use a per-experiment subdir when running multiple SVD_ROOT ablations so configs are not overwritten.',
+    )
     args = parser.parse_args()
     try:
         root = get_svd_root(args.svd_root)
@@ -45,7 +51,10 @@ def main() -> None:
         out_e125 = os.path.join(results_nd, 'e729_nd_v125_test3_el_rel')
         out_b124 = os.path.join(root, 'results', 'mirror_eval', 'v124_vjepa_test3')
         out_b125 = os.path.join(root, 'results', 'mirror_eval', 'v125_vjepa_test3')
-        out_dir = os.path.join(_REPO, 'configs', 'reproduce', 'generated')
+        if args.generated_out_dir:
+            out_dir = os.path.abspath(os.path.expanduser(args.generated_out_dir))
+        else:
+            out_dir = os.path.join(_REPO, 'configs', 'reproduce', 'generated')
         templates = [('config_e729_nd_v124_test3_el_abs.yaml.template', {'CKPT_E124': ckpt_e124, 'SAVE_E124': out_e124, 'DATA_ELASTICITY_ABS': data_abs, 'LIST_ELASTICITY_ABS_T3': lists_abs}), ('config_e729_nd_v125_test3_el_rel.yaml.template', {'CKPT_E125': ckpt_e125, 'SAVE_E125': out_e125, 'DATA_ELASTICITY_REL': data_rel, 'LIST_ELASTICITY_REL_T3': lists_rel}), ('config_v124_vjepa_test3.yaml.template', {'CKPT_B124': ckpt_b124, 'SAVE_B124': out_b124, 'DATA_ELASTICITY_ABS': data_abs, 'LIST_ELASTICITY_ABS_T3': lists_abs}), ('config_v125_vjepa_test3.yaml.template', {'CKPT_B125': ckpt_b125, 'SAVE_B125': out_b125, 'DATA_ELASTICITY_REL': data_rel, 'LIST_ELASTICITY_REL_T3': lists_rel})]
         written = []
         for name, mapping in templates:

@@ -1,0 +1,38 @@
+# IDPP-Data 公开清洗：每条 Hub zip 对应 split、Oracle JSON（test1/2）与期望 _rgb.mp4 数。
+# Oracle JSON 默认目录：环境变量 ORACLE_JSON_DIR（默认 /work/guanqi/Genesis/oracle_py_files）。
+version: 1
+oracle_json_dir_env: ORACLE_JSON_DIR
+default_oracle_json_dir: /work/guanqi/Genesis/oracle_py_files
+
+entries:
+  - { lane: elasticity_absolute, zip: 4.11_mpm_bounce_ball_videos_test1_sorted.zip, split: test1, oracle_json: elasticity_absolute_test1.json, expected_rgb: 976 }
+  - { lane: elasticity_absolute, zip: 4.11_mpm_bounce_ball_videos_test2_sorted.zip, split: test2, oracle_json: elasticity_absolute_test2.json, expected_rgb: 956 }
+  - { lane: elasticity_absolute, zip: 4.11_mpm_bounce_ball_videos_train2_sorted.zip, split: train, oracle_json: null, expected_rgb: null }
+  - { lane: elasticity_absolute, zip: 7.15_new_elasticity_video_clips_merged.zip, split: test3_extra, oracle_json: null, expected_rgb: null }
+
+  - { lane: elasticity_relative, zip: 5.24_elasticity_synthetic_test1.zip, split: test1, oracle_json: elasticity_relative_test1.json, expected_rgb: 1011 }
+  - { lane: elasticity_relative, zip: 5.24_elasticity_synthetic_test2.zip, split: test2, oracle_json: elasticity_relative_test2.json, expected_rgb: 1020 }
+  - { lane: elasticity_relative, zip: 5.24_elasticity_synthetic_train.zip, split: train, oracle_json: null, expected_rgb: null }
+  - { lane: elasticity_relative, zip: 2.16_elasticity_test3.zip, split: test3, oracle_json: null, expected_rgb: null }
+
+  - { lane: friction_absolute, zip: 4.29_friction_synthetic_test1.zip, split: test1, oracle_json: friction_absolute_test1.json, expected_rgb: 767 }
+  - { lane: friction_absolute, zip: 4.29_friction_synthetic_test2.zip, split: test2, oracle_json: friction_absolute_test2.json, expected_rgb: 1003 }
+  - { lane: friction_absolute, zip: 4.29_friction_synthetic_train.zip, split: train, oracle_json: null, expected_rgb: null }
+  - { lane: friction_absolute, zip: 7.18_friction_test3_rgb_seg_videos_152frames_abs_test.zip, split: test3, oracle_json: null, expected_rgb: null }
+  - { lane: friction_absolute, zip: 7.18_friction_test3_rgb_seg_videos_152frames_abs_train.zip, split: train_test3, oracle_json: null, expected_rgb: null }
+
+  - { lane: friction_relative, zip: 5.24_friction_synthetic_test1.zip, split: test1, oracle_json: friction_relative_test1.json, expected_rgb: 806 }
+  - { lane: friction_relative, zip: 5.24_friction_synthetic_test2.zip, split: test2, oracle_json: friction_relative_test2.json, expected_rgb: 1075 }
+  - { lane: friction_relative, zip: 5.24_friction_synthetic_train.zip, split: train, oracle_json: null, expected_rgb: null }
+  - { lane: friction_relative, zip: 7.18_friction_test3_rgb_seg_videos_152frames_relative_test.zip, split: test3, oracle_json: null, expected_rgb: null }
+  - { lane: friction_relative, zip: 7.18_friction_test3_rgb_seg_videos_152frames_relative_train.zip, split: train_test3, oracle_json: null, expected_rgb: null }
+
+  - { lane: viscosity_absolute, zip: 5.2_viscosity_synthetic_test1.zip, split: test1, oracle_json: viscosity_absolute_test1.json, expected_rgb: 934 }
+  - { lane: viscosity_absolute, zip: 5.2_viscosity_synthetic_test2.zip, split: test2, oracle_json: viscosity_absolute_test2.json, expected_rgb: 921 }
+  - { lane: viscosity_absolute, zip: 5.2_viscosity_synthetic_train.zip, split: train, oracle_json: null, expected_rgb: null }
+  - { lane: viscosity_absolute, zip: 7.15_new_viscosity_video_clips_16frames_merged.zip, split: test3_extra, oracle_json: null, expected_rgb: null }
+
+  - { lane: viscosity_relative, zip: 5.24_viscosity_synthetic_test1.zip, split: test1, oracle_json: viscosity_relative_test1.json, expected_rgb: 1005 }
+  - { lane: viscosity_relative, zip: 5.24_viscosity_synthetic_test2.zip, split: test2, oracle_json: viscosity_relative_test2.json, expected_rgb: 1019 }
+  - { lane: viscosity_relative, zip: 5.24_viscosity_synthetic_train.zip, split: train, oracle_json: null, expected_rgb: null }
+  - { lane: viscosity_relative, zip: 7.15_new_viscosity_video_clips_152frames_relative_merged_revised2.zip, split: test3, oracle_json: null, expected_rgb: null }

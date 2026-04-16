@@ -25,10 +25,27 @@ import ipdb
 import os
 import json
 import re
+import uuid
 import inspect
 from lvdm.models.vjepa2_unet import VJEPA2_Direct_Wrapper
 from lvdm.models.attentive_probe import AttentiveClassifier
 __conditioning_keys__ = {'concat': 'c_concat', 'crossattn': 'c_crossattn', 'adm': 'y'}
+
+
+def _dump_elasticity_abs_clip_json(save_dir: str, clip_path: str, pred_val: float, gt_val: float) -> None:
+    """
+    作用：为单条 clip 写入与 `calculate_e729_newdata_dc_scores.load_results` 兼容的 JSON（顶层 key 为路径，值为含 pred/gt 的字典）。
+
+    输入：save_dir 输出目录；clip_path 原始路径或文件名；pred_val、gt_val 标量。
+    输出：在 save_dir 下写入基于完整路径清洗后的唯一 `.json` 文件名，避免不同目录下同 basename 互相覆盖。
+    """
+    try:
+        outp = os.path.join(save_dir, f'clip_{uuid.uuid4().hex}.json')
+        payload = {clip_path: {'pred': float(pred_val), 'gt': float(gt_val)}}
+        with open(outp, 'w', encoding='utf-8') as handle:
+            json.dump(payload, handle, indent=2)
+    except (OSError, TypeError, ValueError) as exc:
+        mainlogger.warning('elasticity abs json dump skipped: %s', exc)
 
 class DDPM(pl.LightningModule):
 
@@ -1834,6 +1851,11 @@ class PhysicsPredictionVJEPA_Base_Test(PhysicsPredictionVJEPA_Base):
                 with open(self.result_file_path, 'a') as f:
                     for i in range(len(gts)):
                         f.write(f'File: {fns[i]}, Prediction: {preds[i]:.6f}, GroundTruth: {gts[i]}\n')
+                        try:
+                            gv = float(gts[i])
+                        except (TypeError, ValueError):
+                            gv = float(gts[i].item()) if hasattr(gts[i], 'item') else float(gts[i])
+                        _dump_elasticity_abs_clip_json(self.save_result_dir, fns[i], float(preds[i]), gv)
         loss_dict['total_loss'] = loss.item()
         return (loss, loss_dict)
 

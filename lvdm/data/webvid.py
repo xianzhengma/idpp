@@ -14,6 +14,54 @@ import json
 IMAGENET_DEFAULT_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_DEFAULT_STD = (0.229, 0.224, 0.225)
 
+
+def _webvid_v3_public_rgb_only_masks(red_circle: bool, red_circle2: bool, red_circle2_vjepa: bool) -> bool:
+    """
+    作用：判断 WebVidv3* 是否处于「公开数据仅 RGB、无 _seg.mp4」模式（用全 1 mask 代替分割视频）。
+    输入：三个红圈相关开关。
+    输出：True 表示不要求磁盘上存在 `_seg.mp4`。
+    """
+    return (not red_circle) and (not red_circle2) and (not red_circle2_vjepa)
+
+
+def _normalize_webvid_v3_basename(raw_name: str) -> str:
+    """
+    作用：把 pair list 条目统一成 basename（去掉 *_rgb.mp4 / .mp4 后缀）。
+    输入：原始字符串。
+    输出：可用于拼接 `_rgb.mp4` 的 basename。
+    """
+    name = str(raw_name).strip()
+    if name.endswith('_rgb.mp4'):
+        return name[:-8]
+    if name.endswith('.mp4'):
+        return name[:-4]
+    return name
+
+
+def _load_webvid_v3_explicit_pairs(video_list_json: str, all_basename_set: set[str], data_dir: str) -> list[list[str]]:
+    """
+    作用：加载显式 pair list，并在「集合匹配失败」时回退到磁盘文件存在性检查。
+    输入：pair json 路径、构建出的 basename 集合、数据目录。
+    输出：通过校验的 basename pair 列表。
+    """
+    selected_entries = json.load(open(video_list_json, 'r'))
+    selected_pairs = []
+    for entry in selected_entries:
+        if not isinstance(entry, (list, tuple)) or len(entry) < 2:
+            continue
+        b1 = _normalize_webvid_v3_basename(entry[0])
+        b2 = _normalize_webvid_v3_basename(entry[1])
+        in_group_set = b1 in all_basename_set and b2 in all_basename_set
+        if in_group_set:
+            selected_pairs.append([b1, b2])
+            continue
+        rgb1 = os.path.join(data_dir, b1 + '_rgb.mp4')
+        rgb2 = os.path.join(data_dir, b2 + '_rgb.mp4')
+        if os.path.isfile(rgb1) and os.path.isfile(rgb2):
+            selected_pairs.append([b1, b2])
+    return selected_pairs
+
+
 class WebVid(Dataset):
 
     def __init__(self, meta_path, data_dir, subsample=None, video_length=16, resolution=[256, 512], frame_stride=1, frame_stride_min=1, spatial_transform=None, crop_resolution=None, fps_max=None, load_raw_resolution=False, fixed_fps=None, random_fs=False):
@@ -923,10 +971,27 @@ class WebVidv2Viscosity(Dataset):
             self.meta_name = 'bounce_analysis_results.json'
         self.gt_ann_file = json.load(open(os.path.join(self.data_dir, self.meta_name)))
         self._no_red_eval = not self.red_circle and (not self.red_circle2) and (not self.red_circle2_vjepa)
+        if self.red_circle2 or self.red_circle2_vjepa:
+            self._mask_suffix = '_red2.mp4'
+        elif self.red_circle:
+            self._mask_suffix = '_red.mp4'
+        else:
+            self._mask_suffix = '_seg.mp4'
         if self._no_red_eval:
             self.metadata = [f + '_rgb.mp4' for f in self.gt_ann_file.keys() if os.path.exists(os.path.join(self.data_dir, f + '_rgb.mp4'))]
         else:
-            self.metadata = [f + '_rgb.mp4' for f in self.gt_ann_file.keys() if os.path.exists(os.path.join(self.data_dir, f + '_rgb.mp4')) and os.path.exists(os.path.join(self.data_dir, f + '_seg.mp4'))]
+            self.metadata = [
+                f + '_rgb.mp4'
+                for f in self.gt_ann_file.keys()
+                if os.path.exists(os.path.join(self.data_dir, f + '_rgb.mp4'))
+                and os.path.exists(os.path.join(self.data_dir, f + self._mask_suffix))
+            ]
+            # Public HF absolute data may not include *_red2.mp4; fallback to RGB-only mask emulation.
+            if self.red_circle2_vjepa and len(self.metadata) == 0:
+                self._no_red_eval = True
+                self.metadata = [
+                    f + '_rgb.mp4' for f in self.gt_ann_file.keys() if os.path.exists(os.path.join(self.data_dir, f + '_rgb.mp4'))
+                ]
         self.metadata.sort()
         if self.video_list_json is not None:
             try:
@@ -981,13 +1046,12 @@ class WebVidv2Viscosity(Dataset):
             sample = self.metadata[index]
             video_path = os.path.join(self.data_dir, sample)
             caption = ''
-            if self.red_circle == False and self.red_circle2 == False:
-                mask_path = video_path.replace('_rgb.mp4', '_seg.mp4')
+            if self.red_circle2 or self.red_circle2_vjepa:
+                mask_path = video_path.replace('_rgb.mp4', '_red2.mp4')
             elif self.red_circle:
                 mask_path = video_path.replace('_rgb.mp4', '_red.mp4')
             else:
-                assert self.red_circle2
-                mask_path = video_path.replace('_rgb.mp4', '_red2.mp4')
+                mask_path = video_path.replace('_rgb.mp4', '_seg.mp4')
             try:
                 if self.load_raw_resolution:
                     video_reader = VideoReader(video_path, ctx=cpu(0))
@@ -1093,10 +1157,12 @@ class WebVidv3Viscosity(Dataset):
             mask_pair_name = '_red.mp4'
         else:
             mask_pair_name = '_seg.mp4'
+        rgb_only_public = _webvid_v3_public_rgb_only_masks(self.red_circle, self.red_circle2, self.red_circle2_vjepa)
         for rgb_file in rgb_files:
             basename = rgb_file[:-8]
             mask_file = basename + mask_pair_name
-            if mask_file in all_files:
+            include_pair = mask_file in all_files or (rgb_only_public and mask_pair_name == '_seg.mp4')
+            if include_pair:
                 parts = basename.split('_')
                 if len(parts) >= 3 and parts[0] == 'video':
                     try:
@@ -1112,15 +1178,8 @@ class WebVidv3Viscosity(Dataset):
         print(f'Found {len(self.metadata)} video groups with multiple videos for comparison')
         if self.video_list_json is not None:
             try:
-                selected_entries = json.load(open(self.video_list_json, 'r'))
-                selected_pairs = []
                 all_basename_set = set(self.all_basenames)
-                for entry in selected_entries:
-                    if isinstance(entry, (list, tuple)) and len(entry) >= 2:
-                        b1 = str(entry[0])
-                        b2 = str(entry[1])
-                        if b1 in all_basename_set and b2 in all_basename_set:
-                            selected_pairs.append([b1, b2])
+                selected_pairs = _load_webvid_v3_explicit_pairs(self.video_list_json, all_basename_set, self.data_dir)
                 if len(selected_pairs) > 0:
                     self.metadata = selected_pairs
                     print(f'Using explicit pair list from {self.video_list_json}, total pairs: {len(self.metadata)}')
@@ -1170,6 +1229,7 @@ class WebVidv3Viscosity(Dataset):
             frame_stride = random.randint(self.frame_stride_min, self.frame_stride)
         else:
             frame_stride = self.frame_stride
+        rgb_only_public = _webvid_v3_public_rgb_only_masks(self.red_circle, self.red_circle2, self.red_circle2_vjepa)
         while True:
             index = index % len(self.metadata)
             meta_entry = self.metadata[index]
@@ -1212,14 +1272,17 @@ class WebVidv3Viscosity(Dataset):
             try:
                 if self.load_raw_resolution:
                     video_reader1 = VideoReader(video_path1, ctx=cpu(0))
-                    mask_reader1 = VideoReader(mask_path1, ctx=cpu(0))
                     video_reader2 = VideoReader(video_path2, ctx=cpu(0))
-                    mask_reader2 = VideoReader(mask_path2, ctx=cpu(0))
                 else:
                     video_reader1 = VideoReader(video_path1, ctx=cpu(0), width=530, height=300)
-                    mask_reader1 = VideoReader(mask_path1, ctx=cpu(0), width=530, height=300)
                     video_reader2 = VideoReader(video_path2, ctx=cpu(0), width=530, height=300)
-                    mask_reader2 = VideoReader(mask_path2, ctx=cpu(0), width=530, height=300)
+                if not rgb_only_public:
+                    if self.load_raw_resolution:
+                        mask_reader1 = VideoReader(mask_path1, ctx=cpu(0))
+                        mask_reader2 = VideoReader(mask_path2, ctx=cpu(0))
+                    else:
+                        mask_reader1 = VideoReader(mask_path1, ctx=cpu(0), width=530, height=300)
+                        mask_reader2 = VideoReader(mask_path2, ctx=cpu(0), width=530, height=300)
                 if len(video_reader1) < self.video_length or len(video_reader2) < self.video_length:
                     print(f'Video length too small: {len(video_reader1)}, {len(video_reader2)} < {self.video_length}')
                     index += 1
@@ -1234,9 +1297,13 @@ class WebVidv3Viscosity(Dataset):
             frame_indices = [start_idx + frame_stride * i for i in range(self.video_length)]
             try:
                 frames1 = video_reader1.get_batch(frame_indices)
-                masks1 = mask_reader1.get_batch(frame_indices)
                 frames2 = video_reader2.get_batch(frame_indices)
-                masks2 = mask_reader2.get_batch(frame_indices)
+                if rgb_only_public:
+                    masks1_raw = np.full(frames1.asnumpy().shape, 255, dtype=np.uint8)
+                    masks2_raw = np.full(frames2.asnumpy().shape, 255, dtype=np.uint8)
+                else:
+                    masks1_raw = mask_reader1.get_batch(frame_indices)
+                    masks2_raw = mask_reader2.get_batch(frame_indices)
                 break
             except Exception as e:
                 print(f'Get frames failed! paths = {video_path1}, {video_path2}, error: {e}')
@@ -1244,9 +1311,13 @@ class WebVidv3Viscosity(Dataset):
                 continue
         assert frames1.shape[0] == self.video_length and frames2.shape[0] == self.video_length, f'Frame lengths: {frames1.shape[0]}, {frames2.shape[0]}, expected: {self.video_length}'
         frames1 = torch.tensor(frames1.asnumpy()).permute(3, 0, 1, 2).float()
-        masks1 = torch.tensor(masks1.asnumpy()).permute(3, 0, 1, 2).float()
         frames2 = torch.tensor(frames2.asnumpy()).permute(3, 0, 1, 2).float()
-        masks2 = torch.tensor(masks2.asnumpy()).permute(3, 0, 1, 2).float()
+        if rgb_only_public:
+            masks1 = torch.tensor(masks1_raw).permute(3, 0, 1, 2).float()
+            masks2 = torch.tensor(masks2_raw).permute(3, 0, 1, 2).float()
+        else:
+            masks1 = torch.tensor(masks1_raw.asnumpy()).permute(3, 0, 1, 2).float()
+            masks2 = torch.tensor(masks2_raw.asnumpy()).permute(3, 0, 1, 2).float()
         if self.red_circle == False and self.red_circle2 == False and (self.red_circle2_vjepa == False):
             masks1 = masks1.mean(dim=0).unsqueeze(0) > 128
             masks2 = masks2.mean(dim=0).unsqueeze(0) > 128
@@ -1318,10 +1389,12 @@ class WebVidv3ViscosityTest(Dataset):
             mask_pair_name = '_red.mp4'
         else:
             mask_pair_name = '_seg.mp4'
+        rgb_only_public = _webvid_v3_public_rgb_only_masks(self.red_circle, self.red_circle2, self.red_circle2_vjepa)
         for rgb_file in rgb_files:
             basename = rgb_file[:-8]
             mask_file = basename + mask_pair_name
-            if mask_file in all_files:
+            include_pair = mask_file in all_files or (rgb_only_public and mask_pair_name == '_seg.mp4')
+            if include_pair:
                 parts = basename.split('_')
                 if len(parts) >= 3 and parts[0] == 'video':
                     try:
@@ -1337,15 +1410,12 @@ class WebVidv3ViscosityTest(Dataset):
         print(f'Found {len(self.metadata)} video groups with multiple videos for comparison')
         if self.video_list_json is not None:
             try:
-                selected_entries = json.load(open(self.video_list_json, 'r'))
-                selected_pairs = []
                 all_basename_set = set(self.all_basenames)
-                for entry in selected_entries:
-                    if isinstance(entry, (list, tuple)) and len(entry) >= 2:
-                        b1 = str(entry[0])
-                        b2 = str(entry[1])
-                        if b1 in all_basename_set and b2 in all_basename_set:
-                            selected_pairs.append([b1, b2])
+                selected_pairs = _load_webvid_v3_explicit_pairs(self.video_list_json, all_basename_set, self.data_dir)
+                if len(selected_pairs) <= 0:
+                    raise RuntimeError(
+                        f'video_list_json={self.video_list_json} matched 0 pairs in data_dir={self.data_dir}'
+                    )
                 self.metadata = selected_pairs
                 print(f'Using explicit pair list from {self.video_list_json}, total pairs: {len(self.metadata)}')
             except (OSError, ValueError, TypeError):
@@ -1390,6 +1460,7 @@ class WebVidv3ViscosityTest(Dataset):
             frame_stride = random.randint(self.frame_stride_min, self.frame_stride)
         else:
             frame_stride = self.frame_stride
+        rgb_only_public = _webvid_v3_public_rgb_only_masks(self.red_circle, self.red_circle2, self.red_circle2_vjepa)
         while True:
             index = index % len(self.metadata)
             meta_entry = self.metadata[index]
@@ -1431,14 +1502,17 @@ class WebVidv3ViscosityTest(Dataset):
             try:
                 if self.load_raw_resolution:
                     video_reader1 = VideoReader(video_path1, ctx=cpu(0))
-                    mask_reader1 = VideoReader(mask_path1, ctx=cpu(0))
                     video_reader2 = VideoReader(video_path2, ctx=cpu(0))
-                    mask_reader2 = VideoReader(mask_path2, ctx=cpu(0))
                 else:
                     video_reader1 = VideoReader(video_path1, ctx=cpu(0), width=530, height=300)
-                    mask_reader1 = VideoReader(mask_path1, ctx=cpu(0), width=530, height=300)
                     video_reader2 = VideoReader(video_path2, ctx=cpu(0), width=530, height=300)
-                    mask_reader2 = VideoReader(mask_path2, ctx=cpu(0), width=530, height=300)
+                if not rgb_only_public:
+                    if self.load_raw_resolution:
+                        mask_reader1 = VideoReader(mask_path1, ctx=cpu(0))
+                        mask_reader2 = VideoReader(mask_path2, ctx=cpu(0))
+                    else:
+                        mask_reader1 = VideoReader(mask_path1, ctx=cpu(0), width=530, height=300)
+                        mask_reader2 = VideoReader(mask_path2, ctx=cpu(0), width=530, height=300)
                 if len(video_reader1) < self.video_length or len(video_reader2) < self.video_length:
                     print(f'Video length too small: {len(video_reader1)}, {len(video_reader2)} < {self.video_length}')
                     index += 1
@@ -1453,9 +1527,13 @@ class WebVidv3ViscosityTest(Dataset):
             frame_indices = [start_idx + frame_stride * i for i in range(self.video_length)]
             try:
                 frames1 = video_reader1.get_batch(frame_indices)
-                masks1 = mask_reader1.get_batch(frame_indices)
                 frames2 = video_reader2.get_batch(frame_indices)
-                masks2 = mask_reader2.get_batch(frame_indices)
+                if rgb_only_public:
+                    masks1_raw = np.full(frames1.asnumpy().shape, 255, dtype=np.uint8)
+                    masks2_raw = np.full(frames2.asnumpy().shape, 255, dtype=np.uint8)
+                else:
+                    masks1_raw = mask_reader1.get_batch(frame_indices)
+                    masks2_raw = mask_reader2.get_batch(frame_indices)
                 break
             except Exception as e:
                 print(f'Get frames failed! paths = {video_path1}, {video_path2}, error: {e}')
@@ -1463,9 +1541,13 @@ class WebVidv3ViscosityTest(Dataset):
                 continue
         assert frames1.shape[0] == self.video_length and frames2.shape[0] == self.video_length, f'Frame lengths: {frames1.shape[0]}, {frames2.shape[0]}, expected: {self.video_length}'
         frames1 = torch.tensor(frames1.asnumpy()).permute(3, 0, 1, 2).float()
-        masks1 = torch.tensor(masks1.asnumpy()).permute(3, 0, 1, 2).float()
         frames2 = torch.tensor(frames2.asnumpy()).permute(3, 0, 1, 2).float()
-        masks2 = torch.tensor(masks2.asnumpy()).permute(3, 0, 1, 2).float()
+        if rgb_only_public:
+            masks1 = torch.tensor(masks1_raw).permute(3, 0, 1, 2).float()
+            masks2 = torch.tensor(masks2_raw).permute(3, 0, 1, 2).float()
+        else:
+            masks1 = torch.tensor(masks1_raw.asnumpy()).permute(3, 0, 1, 2).float()
+            masks2 = torch.tensor(masks2_raw.asnumpy()).permute(3, 0, 1, 2).float()
         if self.red_circle == False and self.red_circle2 == False and (self.red_circle2_vjepa == False):
             masks1 = masks1.mean(dim=0).unsqueeze(0) > 128
             masks2 = masks2.mean(dim=0).unsqueeze(0) > 128

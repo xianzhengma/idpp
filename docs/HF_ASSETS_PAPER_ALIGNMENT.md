@@ -42,6 +42,11 @@ Paper convention: **3 properties × 2 task types × 4 splits = 24** (equivalentl
 
 The **minimal public self-check** still uses **`elasticity_absolute_test3`**, **`elasticity_relative_test3`**, and **`data/lists/*.json`** as in `SVD_public/configs/paths.example.yaml` (resolved by `resolve_eval_configs.py`).
 
+### 1.1 Elasticity test3 — Hub zip names vs §3 `e729_nd_*` yaml
+
+- **Relative test3:** Hub ships **`video_zips/elasticity_relative/2.16_elasticity_test3.zip`** (genesis tree; includes `gt_restitution1.json`). Staging defaults in [`scripts/stage_elasticity_test3_from_hf.py`](../scripts/stage_elasticity_test3_from_hf.py) use this blob; bundled **`SVD_public/data/lists/elasticity_relative_test3.json`** matches collaborator **`Genesis/used_video_list_3.22/`**.
+- **Absolute test3:** Hub ships **`video_zips/elasticity_absolute/7.15_new_elasticity_video_clips_merged.zip`**, matching §3 / `data_global_map.md`. The legacy **`7.15_new_elasticity_video_clips_16frames.zip`** and **`7.14_elasticity_test3.zip`** are **deprecated** for Table 1 reproduction—remove from the dataset repo after uploading replacements. Pack locally with [`scripts/repack_elasticity_test3_paper_zips.py`](../scripts/repack_elasticity_test3_paper_zips.py), sanitize, then [`scripts/upload_idpp_hub_zips.py`](../scripts/upload_idpp_hub_zips.py).
+
 ---
 
 ## 2. Checkpoints — DynamiCrafter (**E**)
@@ -86,9 +91,4 @@ Follow **`SVD/paper_scores_B_sources_and_checkpoints.md`** §2 (full table): **c
 
 **Public repo gate:** **E** v124/v125 + **B** v124/v125, **elasticity Test-3** only — `scripts/verify_paper_elasticity_test3.py`.
 
----
 
-## 5. Changelog
-
-- **2026-04-11 (b)**: **Source of truth** locked to open-source plan: **E = §3 e729_nd + `calculate_e729_newdata_dc_scores.py`**; **§2 scatter excluded** from primary repro; **B = `paper_scores_B_sources_and_checkpoints.md` + mirror_eval**.
-- **2026-04-11 (a)**: Initial manifest; local `checkpoints/` + `dataset/` layout.

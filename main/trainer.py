@@ -5,7 +5,44 @@ import pytorch_lightning as pl
 from pytorch_lightning import seed_everything
 from pytorch_lightning.trainer import Trainer
 import torch
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
+_MAIN_DIR = os.path.dirname(os.path.abspath(__file__))
+_REPO_ROOT = os.path.dirname(_MAIN_DIR)
+if _REPO_ROOT in sys.path:
+    sys.path.remove(_REPO_ROOT)
+sys.path.insert(0, _REPO_ROOT)
+
+
+def _ensure_vjepa_src_on_path() -> None:
+    """若工作区存在同级 `SVD/src`，将其根目录加入 sys.path，以便 `src.models.attentive_pooler` 可导入。
+
+    输入：无。输出：无。副作用：可能向 sys.path 插入一项。
+    """
+    try:
+        main_dir = os.path.dirname(os.path.abspath(__file__))
+        repo_root = os.path.dirname(main_dir)
+        workspace_root = os.path.dirname(repo_root)
+        svd_bundle = os.path.join(workspace_root, 'SVD')
+        marker = os.path.join(svd_bundle, 'src', 'models', 'attentive_pooler.py')
+        if os.path.isfile(marker) and svd_bundle not in sys.path:
+            sys.path.append(svd_bundle)
+    except (OSError, ValueError, TypeError):
+        pass
+
+
+def _log_runtime_module_origins_if_enabled() -> None:
+    """作用：在开启调试时打印关键模块来源。输入：环境变量 `SVD_DEBUG_IMPORT`。输出：无。"""
+    if os.environ.get('SVD_DEBUG_IMPORT', '0') != '1':
+        return
+    try:
+        import lvdm.data.webvid as webvid_module
+        print(f'[debug] cwd={os.getcwd()}')
+        print(f'[debug] sys.path.head={sys.path[:6]}')
+        print(f'[debug] webvid module={getattr(webvid_module, "__file__", "unknown")}')
+    except (ImportError, OSError, AttributeError, TypeError) as exc:
+        print(f'[debug] module origin probe failed: {exc}')
+
+
+_ensure_vjepa_src_on_path()
 from utils.utils import instantiate_from_config
 from utils_train import get_trainer_callbacks, get_trainer_logger, get_trainer_strategy
 from utils_train import set_logger, init_workspace, load_checkpoints
@@ -40,6 +77,7 @@ if __name__ == '__main__':
     args, unknown = parser.parse_known_args()
     transf_logging.set_verbosity_error()
     seed_everything(args.seed)
+    _log_runtime_module_origins_if_enabled()
     configs = [OmegaConf.load(cfg) for cfg in args.base]
     cli = OmegaConf.from_dotlist(unknown)
     config = OmegaConf.merge(*configs, cli)
@@ -61,7 +99,12 @@ if __name__ == '__main__':
         model.register_schedule(given_betas=model.given_betas, beta_schedule=model.beta_schedule, timesteps=model.timesteps, linear_start=model.linear_start, linear_end=model.linear_end, cosine_s=model.cosine_s)
     for k in get_nondefault_trainer_args(args):
         trainer_config[k] = getattr(args, k)
-    num_nodes = trainer_config.num_nodes
+    try:
+        num_nodes = int(trainer_config['num_nodes']) if 'num_nodes' in trainer_config else 1
+    except (KeyError, TypeError, ValueError):
+        num_nodes = 1
+    if num_nodes < 1:
+        num_nodes = 1
     if 'devices' in trainer_config:
         ngpu_per_node = trainer_config.devices
     else:

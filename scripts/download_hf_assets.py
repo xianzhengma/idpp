@@ -19,8 +19,8 @@ def _download_repo(repo_id: str, local_dir: str, repo_type: str) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument('--svd-root', default=os.environ.get('SVD_ROOT', os.path.join(os.getcwd(), 'asset_root')), help='Root directory for checkpoints and data')
-    parser.add_argument('--checkpoints-repo', default=os.environ.get('HF_SVD_CHECKPOINTS_REPO', 'YOUR_ORG/svd-physics-checkpoints'), help='Hugging Face model repo ID (weights)')
-    parser.add_argument('--data-repo', default=os.environ.get('HF_SVD_DATA_REPO', 'YOUR_ORG/svd-physics-eval-data'), help='Hugging Face dataset repo ID (eval videos and list json)')
+    parser.add_argument('--checkpoints-repo', default=os.environ.get('HF_SVD_CHECKPOINTS_REPO', 'Oliver-Ma/IDPP-Checkpoints'), help='Hugging Face model repo ID (weights)')
+    parser.add_argument('--data-repo', default=os.environ.get('HF_SVD_DATA_REPO', 'Oliver-Ma/IDPP-Data'), help='Hugging Face dataset repo ID (eval videos and list json)')
     args = parser.parse_args()
     root = os.path.abspath(args.svd_root)
     os.environ['SVD_ROOT'] = root
@@ -38,6 +38,15 @@ def main() -> None:
             _download_repo(args.data_repo, data_dir, 'dataset')
         print('SVD_ROOT=', root)
         print('If you placed files manually, adjust paths in configs/paths.example.yaml.')
+        if 'YOUR_ORG' not in args.data_repo:
+            print(
+                'Elasticity Test-3: after dataset download, run:',
+                f'python3 {os.path.join(_REPO, "scripts", "stage_elasticity_test3_from_hf.py")}',
+                f'--svd-root {root} --data-hf {data_dir}',
+                '(expects merged + 2.16 zips on Hub; see docs/IDPP_Data_README.md) then:',
+                'python3 scripts/resolve_eval_configs.py --svd-root',
+                root,
+            )
     except RuntimeError as exc:
         print(exc, file=sys.stderr)
         sys.exit(1)

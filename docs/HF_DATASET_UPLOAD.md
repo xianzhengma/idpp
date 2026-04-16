@@ -1,80 +1,59 @@
-# Hugging Face dataset upload (efficient workflow)
+# Hugging Face dataset — how to use it
 
-Use this together with **`data_global_map.md`** (project root) and **`configs/hf_dataset_manifest.example.yaml`**.
+This page is for **readers who reproduce the paper**: where the data lives on the Hub, what the tree means, and how to get it onto disk. (Maintainer upload steps are not documented here.)
 
-## What goes on the Hub
+## Dataset repository
 
-- **24 video bundles**: 3 properties × (absolute | relative) × (train | test1 | test2 | test3).
-- **List JSON** under `used_video_list_3.22` (see `data_global_map.md` §使用说明) — ship as `lists/` (or `metadata/lists/`) in the same dataset repo.
-- **Auxiliary GT / homography JSON** referenced in `data_global_map.md` (friction test3 real, etc.) — ship under `metadata/` so configs can use relative paths inside the snapshot.
+**[`Oliver-Ma/IDPP-Data`](https://huggingface.co/datasets/Oliver-Ma/IDPP-Data)** — physics-benchmark videos for **friction**, **viscosity**, and **elasticity**, each in **absolute** and **relative** lanes, with **train / test1 / test2 / test3** splits where applicable.
 
-**Canonical eval copies** in your notes live under **`/scratch/shared/beegfs/guanqi/genesis_data/`**; **training + some mirrors** live under **`/work/guanqi/proj5/Inferring_dynamic_physics/dataset/`** (`datasets_0906` is a symlink to `dataset`). Staging should **merge** both roots into **one Hub-friendly tree** (no machine-specific prefixes).
+Set this when using the download helper in the code repo:
 
-## Recommended Hub layout (repo-relative)
+```bash
+export HF_SVD_DATA_REPO=Oliver-Ma/IDPP-Data
+```
+
+## What you get after download
+
+The Hub stores **archives**, not an unpacked frame tree. Under the repo root you will see:
 
 ```text
-friction/
-  absolute/{train,test1,test2,test3}/
-  relative/{train,test1,test2,test3}/
-viscosity/
-  absolute/{train,test1,test2,test3}/
-  relative/{train,test1,test2,test3}/
-elasticity/
-  absolute/{train,test1,test2,test3}/
-  relative/{train,test1,test2,test3}/
-lists/          # used_video_list_3.22 copies or generated lists
-metadata/       # bounce_analysis_results.json, etc.
-README.md       # dataset card
+README.md
+video_zips/
+  elasticity_absolute/*.zip
+  elasticity_relative/*.zip
+  friction_absolute/*.zip
+  friction_relative/*.zip
+  viscosity_absolute/*.zip
+  viscosity_relative/*.zip
 ```
 
-Unpack zips **before** upload if training configs expect directories of `*_rgb.mp4`.
+Each split is one or more **`.zip`** files. The evaluation / training loaders expect a **directory** as `data_dir`, so you must **unzip** the bundles you need and point YAML `data_dir` at the **folder that contains the video files** (typically `*_rgb.mp4` trees inside the archive).
 
-## Efficient upload options
+## Download options
 
-### A. `upload-large-folder` (many small files)
-
-Best when the staging folder already looks like the layout above.
+**A. This repo’s helper** (writes under your `SVD_ROOT`, see root `README.md`):
 
 ```bash
-pip install -U huggingface_hub
-huggingface-cli login
-huggingface-cli upload-large-folder YOUR_ORG/svd-physics-eval-data ./hf_dataset_staging \
-  --repo-type=dataset
+python3 scripts/download_hf_assets.py --svd-root "$SVD_ROOT"
 ```
 
-Supports resume and multipart uploads; good for millions of frames.
-
-### B. Fewer, larger blobs (tar per split)
-
-If the CLI is slow on metadata-heavy trees:
+**B. Hugging Face CLI** (any local folder):
 
 ```bash
-tar -cf friction_relative_train.tar -C /path/to/5.24_friction_synthetic_train .
-# upload the .tar with huggingface-cli upload or the Hub UI; document unpack in README
+huggingface-cli download Oliver-Ma/IDPP-Data --repo-type dataset --local-dir ./idpp_data
 ```
 
-Trade-off: users must extract before training; smaller file count, simpler re-upload.
+## Elasticity test-3 convenience staging
 
-### C. Two-phase upload
-
-1. **Phase 1 — tests (collaborator / genesis):** rsync or manifest `src` = `genesis_data/...` into `staging/.../test*`.
-2. **Phase 2 — train (`dataset/`):** append `train` rows from `dataset/` (see `data_global_map.md` **Train** sections).
-
-Re-run `upload-large-folder` with `--exclude` patterns if you only add `**/train/**`.
-
-## Staging helper
+If you use the default Hub zips for the public elasticity **test3** setup, you can unpack into the layout expected by the bundled eval templates with:
 
 ```bash
-cp configs/hf_dataset_manifest.example.yaml hf_dataset_manifest.yaml
-# Edit SRC paths to match your machine (genesis + dataset)
-python scripts/stage_hf_dataset.py --manifest hf_dataset_manifest.yaml --out ./hf_dataset_staging --symlink
-# Inspect, then remove --symlink and use --copy for a self-contained tree if needed
-huggingface-cli upload-large-folder YOUR_ORG/svd-physics-eval-data ./hf_dataset_staging --repo-type=dataset
+python3 scripts/stage_elasticity_test3_from_hf.py \
+  --svd-root "$SVD_ROOT" \
+  --data-hf "$SVD_ROOT/data_hf"
 ```
 
-`--symlink` is fast and saves disk; some filesystems disallow symlinks in upload — if upload fails, use `--copy`.
+## More detail
 
-## After upload
-
-- Set `HF_SVD_DATA_REPO` and pin **revision** in `SVD_public/README.md` / dataset card.
-- Point `SVD_ROOT/data` (or yaml `data_dir`) at the downloaded snapshot layout **matching** this tree so `paper_scores_paths_and_checkpoints.md` §3 yamls stay valid.
+- **Full zip index and revision notes:** [IDPP_Data_README.md](IDPP_Data_README.md) (also used as the Hub dataset card source).
+- **Which blobs align with which paper rows:** [HF_ASSETS_PAPER_ALIGNMENT.md](HF_ASSETS_PAPER_ALIGNMENT.md).

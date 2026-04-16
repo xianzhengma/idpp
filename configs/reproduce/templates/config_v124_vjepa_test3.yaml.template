@@ -125,6 +125,7 @@ data:
     validation:
       target: lvdm.data.webvid.WebVidv2Viscosity
       params:
+        # Keep V-JEPA no-red-circle setting; dataset class now falls back to RGB-only when *_red2.mp4 is absent.
         red_circle2_vjepa: true
         data_dir: __DATA_ELASTICITY_ABS__
         meta_path: <.csv FILE>
