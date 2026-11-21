@@ -95,12 +95,15 @@ class VJEPA2_UNet_Wrapper(nn.Module):
 
 class VJEPA2_Direct_Wrapper(nn.Module):
 
-    def __init__(self, context_dim: int, vjepa_model_size: str='giant', vjepa_checkpoint_path: str=None, num_output_features: int=16, temporal_length: int=16, image_cross_attention: bool=True, **kwargs):
+    def __init__(self, context_dim: int, vjepa_model_size: str='giant', vjepa_checkpoint_path: str=None, num_output_features: int=16, temporal_length: int=16, image_cross_attention: bool=True, fix_input_rescale: bool=False, **kwargs):
         super().__init__()
         self.context_dim = context_dim
         self.num_output_features = num_output_features
         self.temporal_length = temporal_length
         self.image_cross_attention = image_cross_attention
+        # Frames arrive in [-1, 1] and the HF processor rescales by 1/255 by default, so the default path rescales twice.
+        # Released checkpoints were trained that way; fix_input_rescale=True maps frames to [0, 1] and skips the extra rescale.
+        self.fix_input_rescale = fix_input_rescale
         hf_repo = self._get_hf_repo(vjepa_model_size)
         print(f'Loading VJEPA2 model for direct video processing from: {hf_repo}')
         try:
@@ -129,8 +132,12 @@ class VJEPA2_Direct_Wrapper(nn.Module):
         final_context = cond if cond is not None else context
         B, C, T_in, H, W = x.shape
         x_permuted = x.permute(0, 2, 1, 3, 4)
-        video_list = [frame for frame in x_permuted]
-        inputs = self.processor(video_list, return_tensors='pt').to(x.device)
+        if self.fix_input_rescale:
+            video_list = [((frame + 1) / 2).clamp(0, 1) for frame in x_permuted]
+            inputs = self.processor(video_list, return_tensors='pt', do_rescale=False).to(x.device)
+        else:
+            video_list = [frame for frame in x_permuted]
+            inputs = self.processor(video_list, return_tensors='pt').to(x.device)
         vjepa_outputs = self.vjepa(**inputs, output_hidden_states=True)
         all_hidden_states = vjepa_outputs.hidden_states[1:]
         feat_list = []

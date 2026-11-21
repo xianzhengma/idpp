@@ -105,6 +105,8 @@ python3 calculate_e729_newdata_dc_scores.py
 
 Cluster helpers (edit partitions for your site): `scripts/submit_hf_elasticity_test3_four_jobs.sh`, etc.
 
+**Note on V-JEPA 2 input scaling.** The data loaders return frames in [-1, 1] (`(frames / 255 - 0.5) * 2` in `lvdm/data/webvid.py`), and `VJEPA2_Direct_Wrapper` passes them to the Hugging Face `AutoVideoProcessor`, which by default rescales by 1/255 again before ImageNet normalization. V-JEPA 2 therefore receives an almost constant input. The released probe checkpoints were trained with this behaviour, so it remains the default and reproduces them. To train or evaluate with correctly scaled inputs, set `fix_input_rescale: true` under `unet_config.params`; checkpoints trained with the default should not be evaluated this way.
+
 ---
 
 ## Documentation & license
